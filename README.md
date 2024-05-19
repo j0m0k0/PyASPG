@@ -1,2 +1,1 @@
-# OM-ASPG
-# OM-ASPG
+# pyASPG
