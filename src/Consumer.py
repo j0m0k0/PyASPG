@@ -1,9 +1,18 @@
-class Consumer:
-    def __init__(self, name, demand):
-        self.name = name
-        self.demand = demand  # in MW
-        self.consumption = 0  # Current consumption in MW
+# Consumers
+# Description: End-users of electricity.
+# Examples: Households, businesses, industries.
+# Input: Electricity from the distribution network.
+# Output: Consumption of electricity for various needs (lighting, heating, machinery, etc.).
 
-    def consume_power(self, supply):
-        self.consumption = min(self.demand, supply)
-        return self.consumption
+class Consumers(object):
+    pass
+
+class Household(Consumer):
+    pass
+
+class Business(Consumer):
+    pass
+
+class Industry(Consumer):
+    pass
+

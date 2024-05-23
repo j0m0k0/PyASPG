@@ -1,5 +1,9 @@
 # pyASPG
 
+Todo:
+
+    1. Add documents using pydoc
+
 ### Main Components of a Smart Power Grid
 
 1. **Power Generation** : Sources of electricity (e.g., power plants, solar panels, wind turbines).
@@ -30,19 +34,38 @@ An electric circuit, uses electrons to carry the electricity.
 
 Voltage is important because many circuits are designed to only accept a certain number of volts.
 
-
 **Ampere**: A unit of how much electrical charge is flowing past a given point in one second
 
-**Power Formula**: P(watts) = I(amps) * V(volts) 
-
+**Power Formula**: P(watts) = I(amps) * V(volts)
 
 Watts: How much energy is consumed
-
-
-
 
 Watt (W) measures power, which is the rate of energy transfer. It tells you how much energy is used per second.
 
 Voltage (V) measures electrical potential difference or pressure. It tells you how strong the electrical force is that pushes electric current through a circuit.
 
 Current (measured in Amperes or Amps, A) is the flow of electric charge in a circuit. It tells you how many electrons are moving through a conductor per second.
+
+
+### PyTest
+
+- `assert` in python, will continue running the program if the assertion is true, otherwise will raise an exception.
+- A test may fail because of the `assert` statement or even before that, if an exception happened.
+- If we want to test whether we get an exception while running a specific code, we can test it using `with pytest.raises(ThatException)`. With this method we check to see if a certain exception happens or not.
+- Class-based test, can have a setup method that runs before running of each test. you define it as `setup_method(self, method)`.
+- We have another method called `teardown_method(self, method)`, which is the method for cleaning up after a test has finished.
+- For running setup and teardown, you should run your tests using `pytest -s`.
+- For having the concept of `setup_method` in functional test, we can use a concept called `pytest fixtures`.
+- We define fixtures by `@pytest.fixture`.
+- We can make our fixtures global across different test functions, by creating a file called `conftest.py` and then define the fixtures there.
+- Pytest marking: Adding metadata to the tests, which can be used to organize, select, and control the execution of tests.
+- For example, some tests may take a lot of time to run and be slow, some others be fast. You can later say that only run the fast tests or slow tests only. Usage: `@pytest.mark.slow` and for run we say: `pytest -m slow`
+- Skip a test: `@pytest.mark.skip(reason='Feature is currently broken')`
+- Expected failure: We know that a test is going to be failed: `@pytest.mark.xfail(reason='We know that is fails')`
+- xfail is to say that ok we know that this test fails, but we want to keep track of them without having them counted as failed tests.
+- Parameterizing: Clean way of trying the same test for various parameters. `@pytest.mark.parameterize("p1", "p2", [List of tuples])`
+- Mocking: A technique used to isolate the system for testing. For example your function sends a request (it has cost, wait time and etc.), so you can mock it. Or another example is that you have a database and you don't want to mess it up.
+- Other testing libraries like `unittest` can be used inside pytest without any issues.
+- `import unittest.mock as mock` is used for mocking purposes.
+- With using `@mark.patch("requests.get")` we can set the return value of a costly function and just mimic the behavior that we really called that function.
+- Defining specific exceptions also can be useful. Like, customized exceptions for your situations so when you encounter them, you know what's going on.
