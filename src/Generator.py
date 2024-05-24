@@ -1,6 +1,7 @@
 import numpy as np
 import simpy
 
+
 class Generator:
     """
     Base class for all types of power generators.
@@ -110,6 +111,9 @@ class SolarPanel(Generator):
         Args:
             sunlight (float): The amount of sunlight, a factor between 0 and 1.
         """
+        if sunlight < 0 or sunlight > 1:
+            raise ValueError("Sunlight must be a value between 0 and 1")
+        
         while True:
             if sunlight:
                 nominal_output = self.nominal_capacity * sunlight
@@ -134,6 +138,9 @@ class WindTurbine(Generator):
         Args:
             wind_speed (float): The wind speed, a factor between 0 and 1.
         """
+        if wind_speed < 0 or wind_speed > 1:
+            raise ValueError("Wind speed must be a value between 0 and 1")
+        
         while True:
             if wind_speed:
                 nominal_output = self.nominal_capacity * wind_speed
@@ -144,7 +151,6 @@ class WindTurbine(Generator):
             self.calculate_current()
             print(f"{self.env.now}: {self}")
             yield self.env.timeout(1)
-
 
 # def main():
 #     """Main function to run the simulation."""

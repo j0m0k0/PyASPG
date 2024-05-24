@@ -46,7 +46,6 @@ Voltage (V) measures electrical potential difference or pressure. It tells you h
 
 Current (measured in Amperes or Amps, A) is the flow of electric charge in a circuit. It tells you how many electrons are moving through a conductor per second.
 
-
 ### PyTest
 
 - `assert` in python, will continue running the program if the assertion is true, otherwise will raise an exception.
@@ -69,3 +68,12 @@ Current (measured in Amperes or Amps, A) is the flow of electric charge in a cir
 - `import unittest.mock as mock` is used for mocking purposes.
 - With using `@mark.patch("requests.get")` we can set the return value of a costly function and just mimic the behavior that we really called that function.
 - Defining specific exceptions also can be useful. Like, customized exceptions for your situations so when you encounter them, you know what's going on.
+
+### Sphinx
+
+- Generates documentation from python docstrings.
+- You first create a folder called 'docs'
+- Then do `pip install sphinx` and it's theme called `sphinx-rtd-theme`
+- Then you go the docs folder and run the command `sphinx-quickstart`
+- Then get back and run this command: `sphinx-apidoc -o docs .`
+-
