@@ -1,3 +1,4 @@
 .vscode/
 docs/
+docs/*
 .DS_Store
