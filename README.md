@@ -6,15 +6,16 @@ Todo:
 
 ### Main Components of a Smart Power Grid
 
-1. **Power Generation** : Sources of electricity (e.g., power plants, solar panels, wind turbines).
-2. **Transmission** : High-voltage power lines that transport electricity from generation sources to substations.
-3. **Distribution** : Lower-voltage power lines that deliver electricity to consumers.
-4. **Consumers** : End-users of electricity, such as households, businesses, and industries.
-5. **Utility Companies** : Entities that manage the generation, transmission, and distribution of electricity.
-6. **Third-Party Data Aggregators** : Companies that collect and manage data from consumers and communicate with utility companies.
-7. **Smart Meters** : Devices at consumer locations that measure electricity usage and communicate with utility companies and third-party data aggregators.
-8. **Communication Network** : Infrastructure that enables data exchange between smart meters, third-party data aggregators, and utility companies.
-9. **Control Systems** : Systems that manage the operation of the power grid, including demand response and load balancing.
+1. **[✅](https://emojipedia.org/check-mark-button) Power Generation** : Sources of electricity (e.g., power plants, solar panels, wind turbines).
+2. **[✅](https://emojipedia.org/check-mark-button) Transmission** : High-voltage power lines that transport electricity from generation sources to substations.
+3. **[✅](https://emojipedia.org/check-mark-button) Substation** : Receives electricity from transmitters, possibly transform it to a lower voltage, and then pass it to distributors.
+4. **[✅](https://emojipedia.org/check-mark-button) Distribution** : Lower-voltage power lines that deliver electricity to consumers.
+5. **[✅](https://emojipedia.org/check-mark-button) Consumers** : End-users of electricity, such as households, businesses, and industries.
+6. **[✅](https://emojipedia.org/check-mark-button) Smart Meters** : Devices at consumer locations that measure electricity usage and communicate with utility companies and third-party data aggregators.
+7. **[✅](https://emojipedia.org/check-mark-button) Communication Network** : Infrastructure that enables data exchange between smart meters, third-party data aggregators, and utility companies.
+8. **Utility Companies** : Entities that manage the generation, transmission, and distribution of electricity.
+9. **Third-Party Data Aggregators** : Companies that collect and manage data from consumers and communicate with utility companies.
+10. **Control Systems** : Systems that manage the operation of the power grid, including demand response and load balancing.
 
 ### Steps to Build the Simulator
 

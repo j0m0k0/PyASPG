@@ -1,5 +1,5 @@
 import pytest
-from Transmitter import Transmitter
+from distribution.transmitter import Transmitter
 
 def test_transmitter_initialization():
     """

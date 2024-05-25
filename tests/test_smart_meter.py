@@ -1,6 +1,7 @@
 import pytest
-from Consumer import Consumer, Household
-from SmartMeter import SmartMeter 
+from consumer import Consumer, Household
+from communication.smart_meter import SmartMeter
+
 
 def test_smart_meter_initialization():
     """

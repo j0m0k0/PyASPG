@@ -1,5 +1,5 @@
 import pytest
-from Distributor import Distributor
+from distribution.distributor import Distributor
 
 def test_distributor_initialization():
     """

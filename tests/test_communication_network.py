@@ -1,5 +1,5 @@
 import pytest
-from CommunicationNetwork import CommunicationNetwork
+from communication.communication_network import CommunicationNetwork
 
 def test_communication_network_initialization():
     """

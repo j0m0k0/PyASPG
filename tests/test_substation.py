@@ -1,5 +1,5 @@
 import pytest
-from Substation import Substation
+from distribution.substation import Substation
 
 def test_substation_initialization():
     """

@@ -1,5 +1,5 @@
 import pytest
-from Consumer import Consumer, Household, Business, Industry
+from consumer import Consumer, Household, Business, Industry
 
 def test_consumer_initialization():
     """
