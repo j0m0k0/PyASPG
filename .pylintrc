@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=import-error,unused-import,line-too-long,arguments-differ,arguments-renamed,redefined-outer-name,missing-module-docstring
+disable=import-error,unused-import,line-too-long,arguments-differ,arguments-renamed,redefined-outer-name,missing-module-docstring,missing-function-docstring

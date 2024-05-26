@@ -1,5 +1,5 @@
 import pytest
-from distribution.transmitter import Transmitter
+from pyaspg.distribution.transmitter import Transmitter
 
 def test_transmitter_initialization():
     """
@@ -41,3 +41,15 @@ def test_power_loss_over_distance():
     assert output_power_short > output_power_long
     assert transmitter_short.output_power == output_power_short
     assert transmitter_long.output_power == output_power_long
+
+def test_transmit_large_distance():
+    """
+    Test the transmission of electricity over a very large distance.
+    """
+    transmitter = Transmitter(name="Long Distance Line", efficiency=0.97, distance=10000)
+    input_power = 1000000  # 1 MW input power
+    
+    output_power = transmitter.transmit(input_power)
+    
+    assert output_power >= 0  # Output power should never be negative
+    assert output_power <= input_power  # Output power should not exceed input power

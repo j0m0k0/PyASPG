@@ -9,6 +9,7 @@ class Substation:
         output_voltage (float): The output voltage in volts (V).
         efficiency (float): The efficiency of the transformation (a factor between 0 and 1).
         output_power (float): The output power delivered for distribution in watts (W).
+        output_current (float): The output current delivered for distribution in amperes (A).
     """
 
     def __init__(self, name, input_voltage, output_voltage, efficiency=0.98):
@@ -32,6 +33,7 @@ class Substation:
         self.output_voltage = output_voltage
         self.efficiency = efficiency
         self.output_power = 0
+        self.output_current = 0
 
     def transform(self, input_power):
         """
@@ -46,13 +48,18 @@ class Substation:
         self.input_power = input_power
         # Simulate power loss during transformation
         self.output_power = self.input_power * self.efficiency
+        # Calculate the output current using the output voltage
+        if self.output_voltage > 0:
+            self.output_current = self.output_power / self.output_voltage
+        else:
+            self.output_current = 0
         return self.output_power
 
     def __str__(self):
         """Return a string representation of the substation."""
         return (f"{self.name} (Input Power: {self.input_power} W, Output Power: {self.output_power} W, "
                 f"Input Voltage: {self.input_voltage} V, Output Voltage: {self.output_voltage} V, "
-                f"Efficiency: {self.efficiency * 100}%)")
+                f"Output Current: {self.output_current:.2f} A, Efficiency: {self.efficiency * 100}%)")
 
 # Example usage
 def main():

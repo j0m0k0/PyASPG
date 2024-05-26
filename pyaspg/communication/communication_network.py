@@ -1,6 +1,5 @@
 from random import random
 
-
 class CommunicationNetwork:
     """
     Class representing the infrastructure that enables data exchange between smart meters, third-party data aggregators, and utility companies.
@@ -38,8 +37,6 @@ class CommunicationNetwork:
         Returns:
             bool: True if the data was transmitted successfully, False otherwise.
         """
-        
-
         if random() <= self.reliability:
             self.transmitted_data.append(data)
             return True
@@ -56,7 +53,6 @@ class CommunicationNetwork:
         Returns:
             bool: True if the data was received successfully, False otherwise.
         """
-
         if random() <= self.reliability:
             self.received_data.append(data)
             return True
@@ -71,7 +67,7 @@ class CommunicationNetwork:
 
 # Example usage
 def main():
-    network = CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
+    network = CommunicationNetwork(name="Smart Grid Network", reliability=0.9)
     data_packet_1 = {"meter_id": 1, "usage": 500}
     data_packet_2 = {"meter_id": 2, "usage": 300}
 

@@ -1,44 +1,72 @@
 import pytest
-from consumer import Consumer, Household
-from communication.smart_meter import SmartMeter
+from pyaspg.prosume.household import Household
+from pyaspg.communication.smart_meter import SmartMeter
+from pyaspg.communication.communication_network import CommunicationNetwork
 
 
-def test_smart_meter_initialization():
+@pytest.fixture
+def household():
+    return Household(name="Household 1", storage_capacity=5000)
+
+@pytest.fixture
+def communication_network():
+    return CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
+
+@pytest.fixture
+def smart_meter(household, communication_network):
+    return SmartMeter(prosumer=household, communication_network=communication_network)
+
+def test_smart_meter_initialization(household, communication_network):
     """
     Test the initialization of the SmartMeter class.
     """
-    household = Household(name="Household 1")
-    smart_meter = SmartMeter(consumer=household)
+    smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
     
-    assert smart_meter.consumer == household
-    assert smart_meter.usage_data == 0
+    assert smart_meter.prosumer == household
+    assert smart_meter.communication_network == communication_network
+    assert smart_meter.data == {}
 
-def test_measure_usage():
+def test_measure(household, smart_meter):
     """
-    Test the measurement of electricity usage by the SmartMeter class.
+    Test the measurement of electricity usage, production, and net power by the SmartMeter class.
     """
-    household = Household(name="Household 1")
-    smart_meter = SmartMeter(consumer=household)
-    
     input_power = 10000  # 10 kW input power
+    produced_power = 5000  # 5 kW produced power
     household.consume(input_power)
+    household.produce(produced_power)
     
-    measured_usage = smart_meter.measure_usage()
+    measured_data = smart_meter.measure()
     
-    assert measured_usage == household.consumed_power
-    assert smart_meter.usage_data == measured_usage
+    assert measured_data["usage"] == household.consumption
+    assert measured_data["production"] == household.production
+    assert measured_data["net_power"] == household.net_power()
+    assert measured_data["stored_energy"] == household.stored_energy
 
-def test_send_data():
+def test_send_data(household, smart_meter):
     """
-    Test the sending of electricity usage data by the SmartMeter class.
+    Test the sending of electricity usage, production, and net power data by the SmartMeter class.
     """
-    household = Household(name="Household 1")
-    smart_meter = SmartMeter(consumer=household)
-    
     input_power = 10000  # 10 kW input power
+    produced_power = 5000  # 5 kW produced power
     household.consume(input_power)
-    smart_meter.measure_usage()
+    household.produce(produced_power)
     
-    sent_data = smart_meter.send_data()
+    smart_meter.measure()
     
-    assert sent_data == smart_meter.usage_data
+    success = smart_meter.send_data()
+    
+    # Check if data transmission was successful
+    assert success == True
+
+    # Verify that the data was actually sent to the communication network
+    data_packet = {
+        "prosumer_name": household.name,
+        "usage": household.consumption,
+        "production": household.production,
+        "net_power": household.net_power(),
+        "stored_energy": household.stored_energy
+    }
+    assert data_packet in smart_meter.communication_network.transmitted_data
+
+if __name__ == "__main__":
+    pytest.main()

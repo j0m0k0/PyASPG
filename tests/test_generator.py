@@ -1,6 +1,6 @@
 import simpy
 import pytest
-from generation import Generator, PowerPlant, SolarPanel, WindTurbine
+from pyaspg.generation import Generator, PowerPlant, SolarPanel, WindTurbine
 
 @pytest.fixture
 def env():

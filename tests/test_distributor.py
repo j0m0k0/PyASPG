@@ -1,5 +1,5 @@
 import pytest
-from distribution.distributor import Distributor
+from pyaspg.distribution.distributor import Distributor
 
 def test_distributor_initialization():
     """
@@ -20,9 +20,9 @@ def test_distribution():
     distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=10)
     input_power = 1000000  # 1 MW input power
     expected_output_power = input_power * (1 - (1 - 0.9) * 10 / 10)
-    
+   
     output_power = distributor.distribute(input_power)
-    
+   
     assert output_power == pytest.approx(expected_output_power, rel=1e-3)
     assert distributor.input_power == input_power
     assert distributor.output_power == output_power
@@ -41,3 +41,15 @@ def test_power_loss_over_distance():
     assert output_power_short > output_power_long
     assert distributor_short.output_power == output_power_short
     assert distributor_long.output_power == output_power_long
+
+def test_distribute_large_distance():
+    """
+    Test the distribution of electricity over a very large distance.
+    """
+    distributor = Distributor(name="Long Distance Line", efficiency=0.9, distance=2000)
+    input_power = 1000000  # 1 MW input power
+    
+    output_power = distributor.distribute(input_power)
+    
+    assert output_power >= 0  # Output power should never be negative
+    assert output_power <= input_power  # Output power should not exceed input power

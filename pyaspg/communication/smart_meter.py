@@ -1,64 +1,87 @@
-from consumer.household import Household
-
+from pyaspg.prosume.household import Household
+from pyaspg.communication.communication_network import CommunicationNetwork
 
 class SmartMeter:
     """
     Class representing a smart meter that measures electricity usage and communicates with utility companies and third-party data aggregators.
 
     Attributes:
-        consumer (Consumer): The consumer associated with this smart meter.
-        usage_data (float): The total electricity usage measured by the smart meter in watts (W).
+        prosumer (Prosumer): The prosumer associated with this smart meter.
+        communication_network (CommunicationNetwork): The communication network used for transmitting data.
+        data (dict): The measured data including usage, production, net power, and stored energy in watts (W).
     """
 
-    def __init__(self, consumer):
+    def __init__(self, prosumer, communication_network):
         """
         Initialize a SmartMeter instance.
 
         Args:
-            consumer (Consumer): The consumer associated with this smart meter.
+            prosumer (Prosumer): The prosumer associated with this smart meter.
+            communication_network (CommunicationNetwork): The communication network used for transmitting data.
         """
-        self.consumer = consumer
-        self.usage_data = 0
+        self.prosumer = prosumer
+        self.communication_network = communication_network
+        self.data = {}
 
-    def measure_usage(self):
+    def measure(self):
         """
-        Measure the electricity usage of the consumer.
+        Measure the electricity usage, production, and net power of the prosumer.
 
         Returns:
-            float: The current electricity usage in watts (W).
+            dict: The measured data including usage, production, and net power in watts (W).
         """
-        current_usage = self.consumer.consumed_power
-        self.usage_data += current_usage
-        return current_usage
+        net_power = self.prosumer.net_power()
+        self.data = {
+            "usage": self.prosumer.consumption,
+            "production": self.prosumer.production,
+            "net_power": net_power,
+            "stored_energy": self.prosumer.stored_energy
+        }
+        return self.data
 
     def send_data(self):
         """
-        Simulate sending real-time usage data to utility companies and third-party aggregators.
+        Simulate sending real-time usage and production data to utility companies and third-party aggregators.
 
         Returns:
-            float: The total electricity usage data sent in watts (W).
+            bool: True if the data was transmitted successfully, False otherwise.
         """
-        return self.usage_data
+        data_packet = self.measure()
+        data_packet["prosumer_name"] = self.prosumer.name
+        success = self.communication_network.transmit_data(data_packet)
+        return success
 
     def __str__(self):
         """Return a string representation of the smart meter."""
-        return (f"SmartMeter for {self.consumer.name} (Total Usage Data: {self.usage_data} W)")
+        data = self.data
+        return (f"SmartMeter for {self.prosumer.name} (Usage: {data['usage']} W, "
+                f"Production: {data['production']} W, Net Power: {data['net_power']} W, "
+                f"Stored Energy: {data['stored_energy']} W)")
 
 # Example usage
 def main():
-    household = Household(name="Household 1")
-    smart_meter = SmartMeter(consumer=household)
+    household = Household(name="Household 1", storage_capacity=5000)
+    communication_network = CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
+    smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
 
     input_power = 10000  # 10 kW input power
+    produced_power = 12000  # 12 kW produced power
 
-    # Simulate consumption
+    # Simulate consumption and production
     household.consume(input_power)
-    smart_meter.measure_usage()
+    household.produce(produced_power)
+
+    # Debugging: Print initial state
+    print(f"Initial state: {household}")
 
     # Simulate sending data
-    usage_data = smart_meter.send_data()
+    success = smart_meter.send_data()
+
+    # Debugging: Print state after sending data
+    print(f"State after sending data: {household}")
+
     print(smart_meter)
-    print(f"Usage Data Sent: {usage_data} W")
+    print(f"Data Transmission Success: {success}")
 
 if __name__ == "__main__":
     main()

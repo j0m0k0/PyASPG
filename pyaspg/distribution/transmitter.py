@@ -19,6 +19,9 @@ class Transmitter:
             efficiency (float): The efficiency of the transmission (a factor between 0 and 1).
             distance (float): The distance over which the power is transmitted in kilometers (km).
         """
+        if not (0 <= efficiency <= 1):
+            raise ValueError("Efficiency must be between 0 and 1")
+
         self.name = name
         self.input_power = 0
         self.efficiency = efficiency
@@ -37,8 +40,8 @@ class Transmitter:
         """
         self.input_power = input_power
         # Simulate power loss over distance
-        loss_factor = (1 - self.efficiency) * self.distance / 100  # Loss increases with distance
-        self.output_power = self.input_power * (1 - loss_factor)
+        loss_factor = min((1 - self.efficiency) * self.distance / 100, 1)  # Cap loss factor at 1
+        self.output_power = max(self.input_power * (1 - loss_factor), 0)  # Ensure non-negative output power
         return self.output_power
 
     def __str__(self):
@@ -48,7 +51,7 @@ class Transmitter:
 
 # Example usage
 def main():
-    transmitter = Transmitter(name="High Voltage Line 1", efficiency=0.97, distance=100)
+    transmitter = Transmitter(name="High Voltage Line 1", efficiency=0.97, distance=10000)
     input_power = 1000000  # 1 MW input power
     output_power = transmitter.transmit(input_power)
     print(transmitter)

@@ -40,8 +40,8 @@ class Distributor:
         """
         self.input_power = input_power
         # Simulate power loss over distance
-        loss_factor = (1 - self.efficiency) * self.distance / 10  # Loss increases with distance
-        self.output_power = self.input_power * (1 - loss_factor)
+        loss_factor = min((1 - self.efficiency) * self.distance / 10, 1)  # Cap loss factor at 1
+        self.output_power = max(self.input_power * (1 - loss_factor), 0)  # Ensure non-negative output power
         return self.output_power
 
     def __str__(self):
@@ -51,7 +51,7 @@ class Distributor:
 
 # Example usage
 def main():
-    distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=10)
+    distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=70)
     input_power = 1000000  # 1 MW input power
     output_power = distributor.distribute(input_power)
     print(distributor)
