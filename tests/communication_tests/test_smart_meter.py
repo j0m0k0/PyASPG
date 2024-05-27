@@ -3,7 +3,6 @@ from pyaspg.prosume.household import Household
 from pyaspg.communication.smart_meter import SmartMeter
 from pyaspg.communication.communication_network import CommunicationNetwork
 
-
 @pytest.fixture
 def household():
     return Household(name="Household 1", storage_capacity=5000)
@@ -37,9 +36,9 @@ def test_measure(household, smart_meter):
     
     measured_data = smart_meter.measure()
     
-    assert measured_data["usage"] == household.consumption
-    assert measured_data["production"] == household.production
-    assert measured_data["net_power"] == household.net_power()
+    assert measured_data["usage"] == household.total_consumption
+    assert measured_data["production"] == household.total_production
+    assert measured_data["net_power"] == household.net_power
     assert measured_data["stored_energy"] == household.stored_energy
 
 def test_send_data(household, smart_meter):
@@ -61,9 +60,9 @@ def test_send_data(household, smart_meter):
     # Verify that the data was actually sent to the communication network
     data_packet = {
         "prosumer_name": household.name,
-        "usage": household.consumption,
-        "production": household.production,
-        "net_power": household.net_power(),
+        "usage": household.total_consumption,
+        "production": household.total_production,
+        "net_power": household.net_power,
         "stored_energy": household.stored_energy
     }
     assert data_packet in smart_meter.communication_network.transmitted_data

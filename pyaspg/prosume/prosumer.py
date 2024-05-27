@@ -4,10 +4,11 @@ class Prosumer:
 
     Attributes:
         name (str): The name of the prosumer.
-        consumption (float): The electricity consumption in watts (W).
-        production (float): The electricity production in watts (W).
+        total_consumption (float): The total electricity consumption in watts (W).
+        total_production (float): The total electricity production in watts (W).
         storage_capacity (float): The storage capacity in watts (W).
         stored_energy (float): The current stored energy in watts (W).
+        received_commands (list): List of received commands from the aggregator.
     """
 
     def __init__(self, name, storage_capacity=0):
@@ -19,10 +20,52 @@ class Prosumer:
             storage_capacity (float): The storage capacity in watts (W). Default is 0.
         """
         self.name = name
-        self.consumption = 0
-        self.production = 0
+        self.total_consumption = 0
+        self.total_production = 0
         self.storage_capacity = storage_capacity
         self.stored_energy = 0
+        self.received_commands = []
+        self._net_power = 0
+
+    def _update_net_power(self, amount, is_consumption=False, is_production=False):
+        """
+        Calculate and update the net power based on the current state.
+
+        Args:
+            amount (float): The amount of power to be consumed or produced.
+            is_consumption (bool): Indicates if the action is consumption.
+            is_production (bool): Indicates if the action is production.
+        """
+        if is_consumption:
+            # First use stored energy
+            used_from_storage = min(amount, self.stored_energy)
+            self.stored_energy -= used_from_storage
+            remaining_consumption = amount - used_from_storage
+            self._net_power += remaining_consumption
+            print("IS CONSUMPTION:", self, "\n")
+        elif is_production:
+            # First try to meet the net power need
+            # if self._net_power == 0:
+            #     # Just add to the storage
+            #     self.stored_energy = min(self.stored_energy + amount, self.storage_capacity)
+            # else:
+            net_before_production = self._net_power
+            self._net_power -= min(amount, self._net_power)
+            remaining_amount = amount - (net_before_production - self._net_power)
+            stored_energy = min(remaining_amount, self.storage_capacity - self.stored_energy)
+            self.stored_energy += stored_energy
+            self._net_power -= (remaining_amount - stored_energy)
+            print("IS PRODUCTION:", self, "\n")
+
+    @property
+    def net_power(self):
+        """
+        Get the current net power.
+
+        Returns:
+            float: The net power in watts (W). Positive if power is needed from the grid, negative if power is sent to the grid.
+        """
+        return self._net_power
 
     def consume(self, power):
         """
@@ -31,7 +74,8 @@ class Prosumer:
         Args:
             power (float): The power to be consumed in watts (W).
         """
-        self.consumption += power
+        self.total_consumption += power
+        self._update_net_power(power, is_consumption=True)
 
     def produce(self, power):
         """
@@ -40,57 +84,24 @@ class Prosumer:
         Args:
             power (float): The power to be produced in watts (W).
         """
-        self.production += power
+        self.total_production += power
+        self._update_net_power(power, is_production=True)
 
-    def store_energy(self, power):
+    def receive_command(self, command):
         """
-        Store produced energy if there is available storage capacity.
+        Receive a command from the aggregator and store it.
 
         Args:
-            power (float): The power to be stored in watts (W).
-
-        Returns:
-            float: The amount of power stored.
+            command (str): The command to be received.
         """
-        available_capacity = self.storage_capacity - self.stored_energy
-        power_to_store = min(power, available_capacity)
-        self.stored_energy += power_to_store
-        return power_to_store
-
-    def use_stored_energy(self, power):
-        """
-        Use stored energy to meet consumption needs.
-
-        Args:
-            power (float): The power to be used in watts (W).
-
-        Returns:
-            float: The amount of power used from storage.
-        """
-        power_to_use = min(power, self.stored_energy)
-        self.stored_energy -= power_to_use
-        return power_to_use
-
-    def net_power(self):
-        """
-        Calculate the net power that needs to be drawn from or sent to the grid.
-
-        Returns:
-            float: The net power in watts (W). Positive if power is needed from the grid, negative if power is sent to the grid.
-        """
-        net = self.consumption - self.production
-        if net > 0:
-            net -= self.use_stored_energy(net)
-        elif net < 0:
-            excess_production = -net
-            stored = self.store_energy(excess_production)
-            net = -(excess_production - stored)
-        return net
+        self.received_commands.append(command)
+        print(f"Received command: {command}")
 
     def __str__(self):
         """Return a string representation of the prosumer."""
-        return (f"{self.name} (Consumption: {self.consumption} W, Production: {self.production} W, "
-                f"Stored Energy: {self.stored_energy} W, Storage Capacity: {self.storage_capacity} W)")
+        return (f"{self.name} (Consumption: {self.total_consumption} W, Production: {self.total_production} W, "
+                f"Stored Energy: {self.stored_energy} W, Storage Capacity: {self.storage_capacity} W, "
+                f"Net Power: {self._net_power} W, Received Commands: {self.received_commands})")
 
 # Example usage
 def main():
@@ -98,9 +109,16 @@ def main():
     household.consume(10000)  # 10 kW consumption
     household.produce(12000)  # 12 kW production
 
-    net_power = household.net_power()
     print(household)
-    print(f"Net Power: {net_power} W (positive means drawing from the grid, negative means sending to the grid)")
+    print(f"Net Power: {household.net_power} W (positive means drawing from the grid, negative means sending to the grid)")
+
+    household.consume(1000)  # Consume 1 kW, which should be taken from storage
+    print(household)
+    print(f"Net Power: {household.net_power} W")
+
+    household.consume(4000)  # Consume additional 4 kW
+    print(household)
+    print(f"Net Power: {household.net_power} W")
 
 if __name__ == "__main__":
     main()

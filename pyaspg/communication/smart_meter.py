@@ -30,11 +30,10 @@ class SmartMeter:
         Returns:
             dict: The measured data including usage, production, and net power in watts (W).
         """
-        net_power = self.prosumer.net_power()
         self.data = {
-            "usage": self.prosumer.consumption,
-            "production": self.prosumer.production,
-            "net_power": net_power,
+            "usage": self.prosumer.total_consumption,
+            "production": self.prosumer.total_production,
+            "net_power": self.prosumer.net_power,
             "stored_energy": self.prosumer.stored_energy
         }
         return self.data
