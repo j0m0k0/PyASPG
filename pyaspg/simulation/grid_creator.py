@@ -46,30 +46,42 @@ class PyASPGCreator:
             "aggregator_to_utility": [],
             "utility_to_control": []
         }
-
-    def add_components(self, **kwargs):
-        """
-        Add components to the creator.
-
-        Args:
-            kwargs: Keyword arguments representing component lists.
-        """
-        for component_type, component_list in kwargs.items():
-            if component_type in self.components:
-                self.components[component_type].extend(component_list)
-            else:
-                raise ValueError(f"Invalid component type: {component_type}")
+        self.connection_rules = {
+            "generator_to_transmitter": ("generators", "transmitters"),
+            "transmitter_to_substation": ("transmitters", "substations"),
+            "substation_to_distributor": ("substations", "distributors"),
+            "distributor_to_prosumer": ("distributors", "prosumers"),
+            "prosumer_to_smart_meter": ("prosumers", "smart_meters"),
+            "smart_meter_to_aggregator": ("smart_meters", "aggregators"),
+            "aggregator_to_utility": ("aggregators", "utility_companies"),
+            "utility_to_control": ("utility_companies", "control_systems"),
+        }
 
     def define_connections(self, **kwargs):
         """
-        Define connections between components.
+        Define connections between components and store the components.
 
         Args:
             kwargs: Keyword arguments representing connections.
         """
         for connection_type, connection_list in kwargs.items():
             if connection_type in self.connections:
-                self.connections[connection_type].extend(connection_list)
+                source_type, target_type = self.connection_rules[connection_type]
+                for source, target in connection_list:
+                    if not self.components[source_type] or not self.components[target_type]:
+                        valid_source_type = type(source)
+                        valid_target_type = type(target)
+                    else:
+                        valid_source_type = type(self.components[source_type][0])
+                        valid_target_type = type(self.components[target_type][0])
+                    
+                    if not isinstance(source, valid_source_type) or not isinstance(target, valid_target_type):
+                        raise ValueError(f"Invalid connection: {source} -> {target} for {connection_type}")
+                    if source not in self.components[source_type]:
+                        self.components[source_type].append(source)
+                    if target not in self.components[target_type]:
+                        self.components[target_type].append(target)
+                    self.connections[connection_type].append((source, target))
             else:
                 raise ValueError(f"Invalid connection type: {connection_type}")
 
@@ -101,31 +113,15 @@ def main():
     utility_company = UtilityCompany(name="Utility Company 1")
     control_system = ControlSystem(name="Control System 1")
 
-    coal_plant = PowerPlant(None, name="Coal Plant", nominal_capacity=500000000, voltage=25000, fuel_capacity=10000, consumption_rate=50)
-    solar_panel = SolarPanel(None, name="Solar Panel 1", nominal_capacity=100000000, voltage=25000)
-    wind_turbine = WindTurbine(None, name="Wind Turbine 1", nominal_capacity=200000000, voltage=25000)
+    wind_turbine = WindTurbine(name="Wind Turbine 1", nominal_capacity=200000000, voltage=25000)
 
     transmitter = Transmitter(name="High Voltage Line 1", efficiency=0.97, distance=100)
     distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=10)
     substation = Substation(name="Main Substation", input_voltage=25000, output_voltage=10000, efficiency=0.98)
 
-    # Add components to the grid
-    grid_creator.add_components(
-        generators=[coal_plant, solar_panel, wind_turbine],
-        transmitters=[transmitter],
-        substations=[substation],
-        distributors=[distributor],
-        prosumers=[household],
-        communication_networks=[communication_network],
-        smart_meters=[smart_meter],
-        aggregators=[aggregator],
-        utility_companies=[utility_company],
-        control_systems=[control_system]
-    )
-
     # Define connections between components
     grid_creator.define_connections(
-        generator_to_transmitter=[(coal_plant, transmitter), (solar_panel, transmitter), (wind_turbine, transmitter)],
+        generator_to_transmitter=[(wind_turbine, transmitter)],
         transmitter_to_substation=[(transmitter, substation)],
         substation_to_distributor=[(substation, distributor)],
         distributor_to_prosumer=[(distributor, household)],

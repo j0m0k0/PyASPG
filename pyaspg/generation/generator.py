@@ -1,13 +1,10 @@
 import numpy as np
-import simpy
-
 
 class Generator:
     """
     Base class for all types of power generators.
 
     Attributes:
-        env (simpy.Environment): The simulation environment.
         name (str): The name of the generator.
         nominal_capacity (float): The nominal electricity generation capacity in watts (W).
         voltage (float): The voltage in volts (V).
@@ -16,18 +13,16 @@ class Generator:
         std_dev (float): The standard deviation for output variation.
     """
 
-    def __init__(self, env, name, nominal_capacity, voltage, std_dev=0.1):
+    def __init__(self, name, nominal_capacity, voltage, std_dev=0.1):
         """
         Initialize a Generator instance.
 
         Args:
-            env (simpy.Environment): The simulation environment.
             name (str): The name of the generator.
             nominal_capacity (float): The nominal electricity generation capacity in watts (W).
             voltage (float): The voltage in volts (V).
             std_dev (float): The standard deviation for output variation.
         """
-        self.env = env
         self.name = name
         self.nominal_capacity = nominal_capacity
         self.voltage = voltage
@@ -55,22 +50,3 @@ class Generator:
         """Return a string representation of the generator."""
         return (f"{self.name} (Nominal Capacity: {self.nominal_capacity} W, Voltage: {self.voltage} V, "
                 f"Current: {self.current:.2f} A, Current Output: {self.output:.2f} W)")
-
-# def main():
-#     """Main function to run the simulation."""
-#     env = simpy.Environment()
-
-#     coal_plant = PowerPlant(env, name="Coal Plant", nominal_capacity=500000000, voltage=25000,
-#                             fuel_capacity=10000, consumption_rate=50)
-#     solar_panel = SolarPanel(env, name="Solar Panel", nominal_capacity=100000000, voltage=25000)
-#     wind_turbine = WindTurbine(env, name="Wind Turbine", nominal_capacity=200000000, voltage=25000)
-
-#     env.process(coal_plant.generate())
-#     env.process(solar_panel.generate(sunlight=0.8))
-#     env.process(wind_turbine.generate(wind_speed=0.5))
-
-#     env.run(until=10)
-
-
-# if __name__ == "__main__":
-#     main()
