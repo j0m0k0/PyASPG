@@ -13,36 +13,52 @@ from pyaspg.distribution.transmitter import Transmitter
 from pyaspg.distribution.distributor import Distributor
 from pyaspg.distribution.substation import Substation
 from pyaspg.simulation.grid_creator import PyASPGCreator
+from pyaspg.simulation.data_log import DataLog
 
 class GridSimulator:
-    def __init__(self, creator: PyASPGCreator):
+    """
+    Class representing a simulator for a smart grid.
+
+    This class uses the components and connections defined in a PyASPGCreator instance to simulate
+    the behavior of a smart grid over a given duration and timestep. The results of the simulation
+    are logged into CSV files.
+
+    Attributes:
+        creator (PyASPGCreator): An instance of the PyASPGCreator class that defines the components and connections of the smart grid.
+        data_log (DataLog): An instance of the DataLog class that handles logging the simulation data into CSV files.
+
+    Methods:
+        run_simulation(duration, timestep):
+            Runs the simulation for the specified duration and timestep. Logs the results into CSV files.
+    """
+
+    def __init__(self, creator: PyASPGCreator, output_dir: str):
+        """
+        Initialize a GridSimulator instance.
+
+        Args:
+            creator (PyASPGCreator): An instance of the PyASPGCreator class that defines the components and connections of the smart grid.
+            output_dir (str): The directory where the CSV files will be saved.
+        """
         self.creator = creator
+        self.data_log = DataLog(output_dir)
 
-    def run_simulation(self, duration, timestep, output_dir):
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+    def run_simulation(self, duration, timestep):
+        """
+        Run the simulation for the specified duration and timestep.
 
+        This method iterates through each timestep, updates the state of the components, logs the data,
+        and handles the interactions between the components as defined in the connections.
+
+        Args:
+            duration (int): The total duration of the simulation.
+            timestep (int): The timestep interval for logging data and updating component states.
+        """
         components = self.creator.components
         connections = self.creator.connections
 
-        # Create a CSV file for each component type
-        files = {}
-        writers = {}
-        for component_type, component_list in components.items():
-            if component_list:
-                file_path = os.path.join(output_dir, f"{component_type}.csv")
-                files[component_type] = open(file_path, 'w', newline='')
-                writers[component_type] = csv.writer(files[component_type])
-                header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
-                writers[component_type].writerow(header)
-
-        def log_data(timestep):
-            for component_type, component_list in components.items():
-                if component_list:
-                    writer = writers[component_type]
-                    for component in component_list:
-                        data = [timestep] + [getattr(component, attr) for attr in vars(component) if attr != 'env']
-                        writer.writerow(data)
+        # Initialize CSV files
+        self.data_log.initialize_files(components)
 
         for t in range(0, duration + 1, timestep):
             for generator in components['generators']:
@@ -58,10 +74,10 @@ class GridSimulator:
                     if gen == generator:
                         trans.transmit(output_power)
 
-            log_data(t)
+            self.data_log.log_data(t, components)
 
-        for f in files.values():
-            f.close()
+        # Close CSV files
+        self.data_log.close_files()
 
 # Example usage
 def main():
@@ -84,21 +100,25 @@ def main():
     # Define connections between components
     grid_creator.define_connections(
         generator_to_transmitter=[(wind_turbine, transmitter)],
-        # transmitter_to_substation=[(transmitter, substation)],
-        # substation_to_distributor=[(substation, distributor)],
-        # distributor_to_prosumer=[(distributor, household)],
-        # prosumer_to_smart_meter=[(household, smart_meter)],
-        # smart_meter_to_aggregator=[(smart_meter, aggregator)],
-        # aggregator_to_utility=[(aggregator, utility_company)],
-        # utility_to_control=[(utility_company, control_system)]
+        transmitter_to_substation=[(transmitter, substation)],
+        substation_to_distributor=[(substation, distributor)],
+        distributor_to_prosumer=[(distributor, household)],
+        prosumer_to_smart_meter=[(household, smart_meter)],
+        smart_meter_to_aggregator=[(smart_meter, aggregator)],
+        aggregator_to_utility=[(aggregator, utility_company)],
+        utility_to_control=[(utility_company, control_system)]
     )
 
     # Create the smart grid
     grid_creator.create_smart_grid()
 
     # Run the simulation
-    simulator = GridSimulator(grid_creator)
-    simulator.run_simulation(duration=100, timestep=10, output_dir='simulation_results')
+    simulator = GridSimulator(grid_creator, output_dir='simulation_results')
+    simulator.run_simulation(duration=100, timestep=10)
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
