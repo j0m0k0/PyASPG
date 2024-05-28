@@ -65,23 +65,29 @@ class PyASPGCreator:
             kwargs: Keyword arguments representing connections.
         """
         for connection_type, connection_list in kwargs.items():
+            print("TEST", connection_type, connection_list)
             if connection_type in self.connections:
                 source_type, target_type = self.connection_rules[connection_type]
-                for source, target in connection_list:
+                for connection in connection_list:
+                    source, target = connection[:2]
+                    params = connection[2] if len(connection) > 2 else {}
+
                     if not self.components[source_type] or not self.components[target_type]:
                         valid_source_type = type(source)
                         valid_target_type = type(target)
                     else:
                         valid_source_type = type(self.components[source_type][0])
                         valid_target_type = type(self.components[target_type][0])
-                    
+
                     if not isinstance(source, valid_source_type) or not isinstance(target, valid_target_type):
                         raise ValueError(f"Invalid connection: {source} -> {target} for {connection_type}")
+
                     if source not in self.components[source_type]:
                         self.components[source_type].append(source)
                     if target not in self.components[target_type]:
                         self.components[target_type].append(target)
-                    self.connections[connection_type].append((source, target))
+                    
+                    self.connections[connection_type].append((source, target, params))
             else:
                 raise ValueError(f"Invalid connection type: {connection_type}")
 
