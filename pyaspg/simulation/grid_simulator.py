@@ -1,5 +1,7 @@
+# grid_simulator.py
 import os
 import csv
+import simpy
 from pyaspg.management.control_system import ControlSystem
 from pyaspg.management.net_aggregator import NetAggregator
 from pyaspg.management.utility_company import UtilityCompany
@@ -14,13 +16,21 @@ from pyaspg.distribution.distributor import Distributor
 from pyaspg.distribution.substation import Substation
 from pyaspg.simulation.grid_creator import PyASPGCreator
 from pyaspg.simulation.data_log import DataLog
+from pyaspg.simulation.connection_handler import GeneratorToTransmitterHandler, TransmitterToSubstationHandler
 
 class GridSimulator:
     def __init__(self, creator: PyASPGCreator, output_dir: str):
         self.creator = creator
         self.data_log = DataLog(output_dir)
+        self.connection_handlers = {
+            'generator_to_transmitter': GeneratorToTransmitterHandler(),
+            'transmitter_to_substation': TransmitterToSubstationHandler(),
+            # Add other connection handlers here...
+        }
 
     def run_simulation(self, duration, timestep, output_dir):
+        env = simpy.Environment()
+        
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -28,33 +38,24 @@ class GridSimulator:
         connections = self.creator.connections
 
         # Create a CSV file for each component type
-        self.data_log.initialize_files(components)
+        self.data_log.initialize_files(components, connections)
 
-        for t in range(0, duration + 1, timestep):
-            for generator in components['generators']:
-                output_power = 0
-                param_value = None
-                if isinstance(generator, WindTurbine):
-                    for gen, trans, params in connections['generator_to_transmitter']:
-                        if gen == generator:
-                            wind_speed = params.get('wind_speed', [0.8])[t // timestep]
-                            param_value = wind_speed
-                            output_power = generator.generate(wind_speed=wind_speed)
-                            trans.transmit(output_power)
-                elif isinstance(generator, SolarPanel):
-                    for gen, trans, params in connections['generator_to_transmitter']:
-                        if gen == generator:
-                            sunlight = params.get('sunlight', [0.8])[t // timestep]
-                            param_value = sunlight
-                            output_power = generator.generate(sunlight=sunlight)
-                            trans.transmit(output_power)
-                elif isinstance(generator, PowerPlant):
-                    for gen, trans, _ in connections['generator_to_transmitter']:
-                        if gen == generator:
-                            output_power = generator.generate()
-                            trans.transmit(output_power)
+        def log_and_handle(t):
+            for connection_type, connection_list in connections.items():
+                handler = self.connection_handlers.get(connection_type)
+                if handler:
+                    for source, target, params in connection_list:
+                        handler.handle_connection(source, target, params, t // timestep)
 
-                self.data_log.log_data(t, components, param_value)
+            self.data_log.log_data(t, components, connections)
+
+        def run_simulation_step(env):
+            while True:
+                log_and_handle(env.now)
+                yield env.timeout(timestep)
+        
+        env.process(run_simulation_step(env))
+        env.run(until=duration)
 
         # Close CSV files
         self.data_log.close_files()
@@ -80,16 +81,16 @@ def main():
     # Define connections between components with parameters
     grid_creator.define_connections(
         generator_to_transmitter=[
-            # (wind_turbine, transmitter, {'wind_speed': [0.8, 0.0, 0.7, 0.5]}),
-            (solar_panel, transmitter, {'sunlight': [0.8, 0.0, 0.7, 0.6]})
+            (wind_turbine, transmitter, {'wind_speed': [0.8, 0.6, 0.7, 0.5]}),
+            # (solar_panel, transmitter, {'sunlight': [0.8, 0.9, 0.7, 0.6]})
         ],
-        transmitter_to_substation=[(transmitter, substation)],
-        substation_to_distributor=[(substation, distributor)],
-        distributor_to_prosumer=[(distributor, household)],
-        prosumer_to_smart_meter=[(household, smart_meter)],
-        smart_meter_to_aggregator=[(smart_meter, aggregator)],
-        aggregator_to_utility=[(aggregator, utility_company)],
-        utility_to_control=[(utility_company, control_system)]
+        # transmitter_to_substation=[(transmitter, substation, {})],
+        # substation_to_distributor=[(substation, distributor, {})],
+        # distributor_to_prosumer=[(distributor, household, {})],
+        # prosumer_to_smart_meter=[(household, smart_meter, {})],
+        # smart_meter_to_aggregator=[(smart_meter, aggregator, {})],
+        # aggregator_to_utility=[(aggregator, utility_company, {})],
+        # utility_to_control=[(utility_company, control_system, {})]
     )
 
     # Create the smart grid
