@@ -56,31 +56,3 @@ class SmartMeter:
         return (f"SmartMeter for {self.prosumer.name} (Usage: {data['usage']} W, "
                 f"Production: {data['production']} W, Net Power: {data['net_power']} W, "
                 f"Stored Energy: {data['stored_energy']} W)")
-
-# Example usage
-def main():
-    household = Household(name="Household 1", storage_capacity=5000)
-    communication_network = CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
-    smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
-
-    input_power = 10000  # 10 kW input power
-    produced_power = 12000  # 12 kW produced power
-
-    # Simulate consumption and production
-    household.consume(input_power)
-    household.produce(produced_power)
-
-    # Debugging: Print initial state
-    print(f"Initial state: {household}")
-
-    # Simulate sending data
-    success = smart_meter.send_data()
-
-    # Debugging: Print state after sending data
-    print(f"State after sending data: {household}")
-
-    print(smart_meter)
-    print(f"Data Transmission Success: {success}")
-
-if __name__ == "__main__":
-    main()

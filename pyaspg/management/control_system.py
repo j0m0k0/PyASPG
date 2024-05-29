@@ -1,5 +1,8 @@
 from pyaspg.management.net_aggregator import NetAggregator
+from pyaspg.utils import log_me
 
+
+@log_me
 class ControlSystem:
     """
     Class representing control systems that manage the operation of the power grid, including demand response and load balancing.
@@ -87,39 +90,3 @@ class ControlSystem:
         """Return a string representation of the control system."""
         return (f"ControlSystem {self.name} (Grid Data: {self.grid_data})")
 
-# Example usage
-def main():
-    control_system = ControlSystem(name="Control System 1")
-    
-    # Mock data to simulate updates from various parts of the grid
-    generation_data = {"Plant 1": 5000, "Plant 2": 7000}
-    transmission_data = {"Line 1": 6000, "Line 2": 4000}
-    distribution_data = {"Region 1": 8000, "Region 2": 3000}
-    consumption_data = {"Household 1": 2000, "Business 1": 3000}
-
-    # Updating grid data
-    control_system.update_grid_data("generation", generation_data)
-    control_system.update_grid_data("transmission", transmission_data)
-    control_system.update_grid_data("distribution", distribution_data)
-    control_system.update_grid_data("consumption", consumption_data)
-
-    # Analyzing grid data
-    commands = control_system.analyze_grid()
-    print("Analyzed Commands:", commands)
-
-    # Mock net aggregator to simulate issuing commands
-    class MockNetAggregator:
-        def __init__(self):
-            self.received_commands = []
-
-        def receive_command(self, command, message):
-            self.received_commands.append((command, message))
-            print(f"Received command: {command} - {message}")
-
-    net_aggregator = MockNetAggregator()
-    control_system.issue_commands(net_aggregator, commands)
-
-    print(control_system)
-
-if __name__ == "__main__":
-    main()

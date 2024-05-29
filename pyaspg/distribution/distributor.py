@@ -48,14 +48,3 @@ class Distributor:
         """Return a string representation of the distributor."""
         return (f"{self.name} (Input Power: {self.input_power} W, Output Power: {self.output_power} W, "
                 f"Efficiency: {self.efficiency * 100}%, Distance: {self.distance} km)")
-
-# Example usage
-def main():
-    distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=70)
-    input_power = 1000000  # 1 MW input power
-    output_power = distributor.distribute(input_power)
-    print(distributor)
-    print(f"Output Power: {output_power} W")
-
-if __name__ == "__main__":
-    main()

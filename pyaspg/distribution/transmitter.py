@@ -48,14 +48,3 @@ class Transmitter:
         """Return a string representation of the transmitter."""
         return (f"{self.name} (Input Power: {self.input_power} W, Output Power: {self.output_power} W, "
                 f"Efficiency: {self.efficiency * 100}%, Distance: {self.distance} km)")
-
-# Example usage
-def main():
-    transmitter = Transmitter(name="High Voltage Line 1", efficiency=0.97, distance=10000)
-    input_power = 1000000  # 1 MW input power
-    output_power = transmitter.transmit(input_power)
-    print(transmitter)
-    print(f"Output Power: {output_power} W")
-
-if __name__ == "__main__":
-    main()

@@ -1,3 +1,7 @@
+from pyaspg.utils import log_me
+
+
+@log_me
 class Prosumer:
     """
     Class representing a prosumer who can both consume and produce electricity.
@@ -42,7 +46,6 @@ class Prosumer:
             self.stored_energy -= used_from_storage
             remaining_consumption = amount - used_from_storage
             self._net_power += remaining_consumption
-            print("IS CONSUMPTION:", self, "\n")
         elif is_production:
             # First try to meet the net power need
             # if self._net_power == 0:
@@ -55,7 +58,6 @@ class Prosumer:
             stored_energy = min(remaining_amount, self.storage_capacity - self.stored_energy)
             self.stored_energy += stored_energy
             self._net_power -= (remaining_amount - stored_energy)
-            print("IS PRODUCTION:", self, "\n")
 
     @property
     def net_power(self):
@@ -95,7 +97,6 @@ class Prosumer:
             command (str): The command to be received.
         """
         self.received_commands.append(command)
-        print(f"Received command: {command}")
 
     def __str__(self):
         """Return a string representation of the prosumer."""
@@ -103,22 +104,3 @@ class Prosumer:
                 f"Stored Energy: {self.stored_energy} W, Storage Capacity: {self.storage_capacity} W, "
                 f"Net Power: {self._net_power} W, Received Commands: {self.received_commands})")
 
-# Example usage
-def main():
-    household = Prosumer(name="Household 1", storage_capacity=5000)
-    household.consume(10000)  # 10 kW consumption
-    household.produce(12000)  # 12 kW production
-
-    print(household)
-    print(f"Net Power: {household.net_power} W (positive means drawing from the grid, negative means sending to the grid)")
-
-    household.consume(1000)  # Consume 1 kW, which should be taken from storage
-    print(household)
-    print(f"Net Power: {household.net_power} W")
-
-    household.consume(4000)  # Consume additional 4 kW
-    print(household)
-    print(f"Net Power: {household.net_power} W")
-
-if __name__ == "__main__":
-    main()

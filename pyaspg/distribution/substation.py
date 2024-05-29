@@ -60,14 +60,3 @@ class Substation:
         return (f"{self.name} (Input Power: {self.input_power} W, Output Power: {self.output_power} W, "
                 f"Input Voltage: {self.input_voltage} V, Output Voltage: {self.output_voltage} V, "
                 f"Output Current: {self.output_current:.2f} A, Efficiency: {self.efficiency * 100}%)")
-
-# Example usage
-def main():
-    substation = Substation(name="Main Substation", input_voltage=25000, output_voltage=10000, efficiency=0.98)
-    input_power = 1000000  # 1 MW input power
-    output_power = substation.transform(input_power)
-    print(substation)
-    print(f"Output Power: {output_power} W")
-
-if __name__ == "__main__":
-    main()

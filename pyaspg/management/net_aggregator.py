@@ -1,7 +1,10 @@
 from pyaspg.communication.smart_meter import SmartMeter, CommunicationNetwork
 from pyaspg.prosume.household import Household
 from pyaspg.management.utility_company import UtilityCompany
+from pyaspg.utils import log_me
 
+
+@log_me
 class NetAggregator:
     """
     Class representing a third-party data aggregator that collects and manages data from consumers and communicates with utility companies.
@@ -75,7 +78,6 @@ class NetAggregator:
         if command not in self.commands:
             self.commands[command] = []
         self.commands[command].append(message)
-        print(f"NetAggregator {self.name} received command: {command} - {message}")
 
     def send_command(self, prosumer, command):
         """
@@ -94,38 +96,3 @@ class NetAggregator:
         """Return a string representation of the aggregator."""
         return (f"NetAggregator {self.name} (Data Collected: {len(self.data_collected)} packets, "
                 f"Utility Data: {self.utility_data}, Commands: {self.commands})")
-
-# Example usage
-def main():
-    # Creating instances for testing
-    household = Household(name="Household 1", storage_capacity=5000)
-    communication_network = CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
-    smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
-    
-    aggregator = NetAggregator(name="Data Aggregator 1")
-    
-    input_power = 10000  # 10 kW input power
-    produced_power = 12000  # 12 kW produced power
-
-    # Simulate consumption and production
-    household.consume(input_power)
-    household.produce(produced_power)
-
-    # Collect data from smart meter
-    aggregator.collect_data(smart_meter)
-    
-    # Aggregate data
-    aggregator.aggregate_data()
-
-    utility_company = UtilityCompany(name='CPS Energy')
-    aggregator.send_data_to_utility(utility_company)
-
-    # Sending command to prosumer
-    command = "Reduce consumption by 500 W"
-    aggregator.send_command(household, command)
-
-    print(aggregator)
-    print(f"Commands sent to {household.name}: {aggregator.commands[household.name]}")
-
-if __name__ == "__main__":
-    main()
