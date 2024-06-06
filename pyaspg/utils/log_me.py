@@ -1,8 +1,15 @@
 import logging
 from functools import wraps
+from datetime import datetime
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='- %(message)s')
+# Get the current date and time to create a log file name
+current_time = datetime.now().strftime('%m-%d-%Y-%H%M%S')
+log_filename = f'logs/{current_time}.log'
+
+# Configure logging to write to a file without printing to standard output
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[
+    logging.FileHandler(log_filename)
+])
 
 def log_me(cls):
     # Iterate through all the attributes of the class

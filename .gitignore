@@ -5,3 +5,5 @@ docs/*
 temp.txt
 simulation_results/
 *.zip
+logs/
+consumption_patterns/

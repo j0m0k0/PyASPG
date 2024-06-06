@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class BaseHandler(ABC):
     def __init__(self, relation_type='one-to-one'):
         self.relation_type = relation_type

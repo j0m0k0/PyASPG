@@ -1,1 +1,2 @@
 from .log_me import log_me
+from .consumption_pattern_parser import ConsumptionPatternParser

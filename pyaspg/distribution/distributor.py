@@ -28,17 +28,29 @@ class Distributor:
         self.distance = distance
         self.output_power = 0
 
-    def distribute(self, input_power):
+    def receive(self, input_power):
+        """
+        Receive the power from the generator.
+
+        Args:
+            input_power (float): The input power received from the generation sources in watts (W).
+        
+        Returns:
+            None
+        """
+
+        self.input_power = input_power
+
+    def distribute(self):
         """
         Simulate the distribution of electricity.
 
         Args:
-            input_power (float): The input power received from substations in watts (W).
+            
 
         Returns:
             float: The output power delivered to end-users in watts (W).
         """
-        self.input_power = input_power
         # Simulate power loss over distance
         loss_factor = min((1 - self.efficiency) * self.distance / 10, 1)  # Cap loss factor at 1
         self.output_power = max(self.input_power * (1 - loss_factor), 0)  # Ensure non-negative output power

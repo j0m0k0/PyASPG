@@ -1,4 +1,4 @@
-from pyaspg.prosume.household import Household
+from pyaspg.prosume import Prosumer
 from pyaspg.communication.communication_network import CommunicationNetwork
 
 class SmartMeter:

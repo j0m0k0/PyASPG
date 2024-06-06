@@ -10,7 +10,7 @@ Todo:
 2. **[✅](https://emojipedia.org/check-mark-button) Transmission** : High-voltage power lines that transport electricity from generation sources to substations.
 3. **[✅](https://emojipedia.org/check-mark-button) Substation** : Receives electricity from transmitters, possibly transform it to a lower voltage, and then pass it to distributors.
 4. **[✅](https://emojipedia.org/check-mark-button) Distribution** : Lower-voltage power lines that deliver electricity to consumers.
-5. **[✅](https://emojipedia.org/check-mark-button) Consumers** : End-users of electricity, such as households, businesses, and industries.
+5. **[✅](https://emojipedia.org/check-mark-button) Prosumers** : End-users of electricity, such as households, businesses, and industries, that consume the electricity and able to produce as well.
 6. **[✅](https://emojipedia.org/check-mark-button) Smart Meters** : Devices at consumer locations that measure electricity usage and communicate with utility companies and third-party data aggregators.
 7. **[✅](https://emojipedia.org/check-mark-button) Communication Network** : Infrastructure that enables data exchange between smart meters, third-party data aggregators, and utility companies.
 8. **Utility Companies** : Entities that manage the generation, transmission, and distribution of electricity.

@@ -21,7 +21,8 @@ def test_transmission():
     input_power = 1000000  # 1 MW input power
     expected_output_power = input_power * (1 - (1 - 0.97) * 100 / 100)
     
-    output_power = transmitter.transmit(input_power)
+    transmitter.receive(input_power)
+    output_power = transmitter.transmit()
     
     assert output_power == pytest.approx(expected_output_power, rel=1e-3)
     assert transmitter.input_power == input_power
@@ -35,8 +36,11 @@ def test_power_loss_over_distance():
     transmitter_long = Transmitter(name="Long Distance Line", efficiency=0.97, distance=200)
     input_power = 1000000  # 1 MW input power
     
-    output_power_short = transmitter_short.transmit(input_power)
-    output_power_long = transmitter_long.transmit(input_power)
+    transmitter_short.receive(input_power)
+    output_power_short = transmitter_short.transmit()
+    
+    transmitter_long.receive(input_power)
+    output_power_long = transmitter_long.transmit()
     
     assert output_power_short > output_power_long
     assert transmitter_short.output_power == output_power_short
@@ -49,7 +53,8 @@ def test_transmit_large_distance():
     transmitter = Transmitter(name="Long Distance Line", efficiency=0.97, distance=10000)
     input_power = 1000000  # 1 MW input power
     
-    output_power = transmitter.transmit(input_power)
+    transmitter.receive(input_power)
+    output_power = transmitter.transmit()
     
     assert output_power >= 0  # Output power should never be negative
     assert output_power <= input_power  # Output power should not exceed input power

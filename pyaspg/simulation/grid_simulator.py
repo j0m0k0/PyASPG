@@ -7,7 +7,7 @@ from pyaspg.management.net_aggregator import NetAggregator
 from pyaspg.management.utility_company import UtilityCompany
 from pyaspg.communication.smart_meter import SmartMeter
 from pyaspg.communication.communication_network import CommunicationNetwork
-from pyaspg.prosume.household import Household, Prosumer
+from pyaspg.prosume import Prosumer
 from pyaspg.generation.power_plant import PowerPlant
 from pyaspg.generation.solar_panel import SolarPanel
 from pyaspg.generation.wind_turbine import WindTurbine
@@ -16,22 +16,25 @@ from pyaspg.distribution.distributor import Distributor
 from pyaspg.distribution.substation import Substation
 from pyaspg.simulation.grid_creator import PyASPGCreator
 from pyaspg.simulation.data_log import DataLog
-from pyaspg.simulation.connection_handler import GeneratorToTransmitterHandler, TransmitterToSubstationHandler
+from pyaspg.simulation.connection_handler import GeneratorToTransmitterHandler, TransmitterToSubstationHandler, SubstationToDistributorHandler, DistributorToProsumerHandler
 from pyaspg.utils import log_me
 
 
 @log_me
 class GridSimulator:
-    def __init__(self, creator: PyASPGCreator, output_dir: str):
+    def __init__(self, creator: PyASPGCreator):
         self.creator = creator
-        self.data_log = DataLog(output_dir)
+        self.data_log = None        
         self.connection_handlers = {
             'generator_to_transmitter': GeneratorToTransmitterHandler(),
             'transmitter_to_substation': TransmitterToSubstationHandler(),
+            'substation_to_distributor': SubstationToDistributorHandler(),
+            'distributor_to_prosumer': DistributorToProsumerHandler(),
             # Add other connection handlers here...
         }
 
     def run_simulation(self, duration, timestep, output_dir):
+        self.data_log = DataLog(output_dir)
         env = simpy.Environment()
         
         if not os.path.exists(output_dir):

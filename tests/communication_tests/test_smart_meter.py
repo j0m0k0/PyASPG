@@ -1,11 +1,10 @@
 import pytest
-from pyaspg.prosume.household import Household
-from pyaspg.communication.smart_meter import SmartMeter
-from pyaspg.communication.communication_network import CommunicationNetwork
+from pyaspg.prosume import Prosumer
+from pyaspg.communication import SmartMeter, CommunicationNetwork
 
 @pytest.fixture
 def household():
-    return Household(name="Household 1", storage_capacity=5000)
+    return Prosumer(name="Household 1", consumption_file="consumption_patterns/2006-12-16.csv", storage_capacity=5000, prosumer_type="House")
 
 @pytest.fixture
 def communication_network():
@@ -29,10 +28,8 @@ def test_measure(household, smart_meter):
     """
     Test the measurement of electricity usage, production, and net power by the SmartMeter class.
     """
-    input_power = 10000  # 10 kW input power
-    produced_power = 5000  # 5 kW produced power
-    household.consume(input_power)
-    household.produce(produced_power)
+    household.generate_consumption()  # Generate consumption
+    household.generate_production()  # Generate production
     
     measured_data = smart_meter.measure()
     
@@ -45,10 +42,8 @@ def test_send_data(household, smart_meter):
     """
     Test the sending of electricity usage, production, and net power data by the SmartMeter class.
     """
-    input_power = 10000  # 10 kW input power
-    produced_power = 5000  # 5 kW produced power
-    household.consume(input_power)
-    household.produce(produced_power)
+    household.generate_consumption()  # Generate consumption
+    household.generate_production()  # Generate production
     
     smart_meter.measure()
     

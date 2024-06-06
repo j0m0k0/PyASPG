@@ -3,7 +3,7 @@ from pyaspg.management.net_aggregator import NetAggregator
 from pyaspg.management.utility_company import UtilityCompany
 from pyaspg.communication.smart_meter import SmartMeter
 from pyaspg.communication.communication_network import CommunicationNetwork
-from pyaspg.prosume.household import Household, Prosumer
+from pyaspg.prosume import Prosumer
 from pyaspg.generation.power_plant import PowerPlant
 from pyaspg.generation.solar_panel import SolarPanel
 from pyaspg.generation.wind_turbine import WindTurbine

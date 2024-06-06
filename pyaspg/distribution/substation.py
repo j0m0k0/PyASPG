@@ -34,18 +34,30 @@ class Substation:
         self.efficiency = efficiency
         self.output_power = 0
         self.output_current = 0
+    
+    def receive(self, input_power):
+        """
+        Receive the power from the generator.
 
-    def transform(self, input_power):
+        Args:
+            input_power (float): The input power received from the generation sources in watts (W).
+        
+        Returns:
+            None
+        """
+
+        self.input_power = input_power
+
+    def transform(self):
         """
         Simulate the transformation of electricity.
 
         Args:
-            input_power (float): The input power received from transmitters in watts (W).
 
         Returns:
             float: The output power delivered for distribution in watts (W).
         """
-        self.input_power = input_power
+
         # Simulate power loss during transformation
         self.output_power = self.input_power * self.efficiency
         # Calculate the output current using the output voltage

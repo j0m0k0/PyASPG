@@ -1,7 +1,9 @@
 from pyaspg.simulation.connection_handler import BaseHandler
 from pyaspg.generation import WindTurbine, SolarPanel, PowerPlant
+from pyaspg.utils import log_me
 
-# generator_to_transmitter.py
+
+@log_me
 class GeneratorToTransmitterHandler(BaseHandler):
     def handle_connection(self, source, target, params, timestep):
         if isinstance(source, WindTurbine):
@@ -13,5 +15,5 @@ class GeneratorToTransmitterHandler(BaseHandler):
         elif isinstance(source, PowerPlant):
             output_power = source.generate()
         
-        target.transmit(output_power)
+        target.receive(output_power)
 

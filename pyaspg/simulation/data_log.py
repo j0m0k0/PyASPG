@@ -1,8 +1,9 @@
 import os
 import csv
 from pyaspg.generation import WindTurbine, SolarPanel
+from pyaspg.utils import log_me
 
-
+@log_me
 class DataLog:
     def __init__(self, output_dir):
         self.output_dir = output_dir
@@ -16,8 +17,13 @@ class DataLog:
                 file_path = os.path.join(self.output_dir, f"{component_type}.csv")
                 self.files[component_type] = open(file_path, 'w', newline='')
                 self.writers[component_type] = csv.writer(self.files[component_type])
-                header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
                 
+                # Define headers
+                if component_type == 'prosumers':
+                    header = ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'stored_energy', 'net_power']
+                else:
+                    header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
+
                 # Add wind_speed or sunlight to the header if applicable
                 if component_type == 'generators':
                     for source, target, params in connections['generator_to_transmitter']:
@@ -25,6 +31,10 @@ class DataLog:
                             header.append('wind_speed')
                         elif 'sunlight' in params:
                             header.append('sunlight')
+                
+                # Add specific headers for distributors
+                if component_type == 'distributors':
+                    header.extend(['power_to_prosumers'])
 
                 self.writers[component_type].writerow(header)
                 
@@ -37,7 +47,18 @@ class DataLog:
             if component_list:
                 writer = self.writers[component_type]
                 for i, component in enumerate(component_list):
-                    data = [timestep] + [getattr(component, attr) for attr in vars(component) if attr != 'env']
+                    data = [timestep]
+                    if component_type == 'prosumers':
+                        data.extend([
+                            component.name,
+                            component.stored_energy_before,
+                            component.net_power_before,
+                            component.received_power,
+                            component.stored_energy,
+                            component.net_power
+                        ])
+                    else:
+                        data += [getattr(component, attr) for attr in vars(component) if attr != 'env']
                     
                     # Add wind_speed or sunlight to the data if applicable
                     if component_type == 'generators':
@@ -47,6 +68,11 @@ class DataLog:
                                     data.append(params['wind_speed'][timestep // 10])
                                 elif 'sunlight' in params:
                                     data.append(params['sunlight'][timestep // 10])
+                    
+                    # Add specific data for distributors
+                    if component_type == 'distributors':
+                        power_to_prosumers = sum([target.received_power for _, target, _ in connections['distributor_to_prosumer'] if _ == component])
+                        data.append(power_to_prosumers)
 
                     writer.writerow(data)
 

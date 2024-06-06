@@ -21,7 +21,8 @@ def test_distribution():
     input_power = 1000000  # 1 MW input power
     expected_output_power = input_power * (1 - (1 - 0.9) * 10 / 10)
    
-    output_power = distributor.distribute(input_power)
+    distributor.receive(input_power)
+    output_power = distributor.distribute()
    
     assert output_power == pytest.approx(expected_output_power, rel=1e-3)
     assert distributor.input_power == input_power
@@ -35,8 +36,11 @@ def test_power_loss_over_distance():
     distributor_long = Distributor(name="Long Distance Line", efficiency=0.9, distance=20)
     input_power = 1000000  # 1 MW input power
     
-    output_power_short = distributor_short.distribute(input_power)
-    output_power_long = distributor_long.distribute(input_power)
+    distributor_short.receive(input_power)
+    output_power_short = distributor_short.distribute()
+    
+    distributor_long.receive(input_power)
+    output_power_long = distributor_long.distribute()
     
     assert output_power_short > output_power_long
     assert distributor_short.output_power == output_power_short
@@ -49,7 +53,8 @@ def test_distribute_large_distance():
     distributor = Distributor(name="Long Distance Line", efficiency=0.9, distance=2000)
     input_power = 1000000  # 1 MW input power
     
-    output_power = distributor.distribute(input_power)
+    distributor.receive(input_power)
+    output_power = distributor.distribute()
     
     assert output_power >= 0  # Output power should never be negative
     assert output_power <= input_power  # Output power should not exceed input power

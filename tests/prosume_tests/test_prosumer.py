@@ -3,7 +3,7 @@ from pyaspg.prosume.prosumer import Prosumer
 
 @pytest.fixture
 def prosumer():
-    return Prosumer(name="Test Prosumer", storage_capacity=5000)
+    return Prosumer(name="Test Prosumer", consumption_file="consumption_patterns/2006-12-16.csv", storage_capacity=5000)
 
 def test_prosumer_initialization(prosumer):
     """

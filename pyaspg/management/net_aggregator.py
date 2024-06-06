@@ -1,5 +1,5 @@
 from pyaspg.communication.smart_meter import SmartMeter, CommunicationNetwork
-from pyaspg.prosume.household import Household
+from pyaspg.prosume import Prosumer
 from pyaspg.management.utility_company import UtilityCompany
 from pyaspg.utils import log_me
 

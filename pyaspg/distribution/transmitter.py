@@ -28,17 +28,26 @@ class Transmitter:
         self.distance = distance
         self.output_power = 0
 
-    def transmit(self, input_power):
+    def receive(self, input_power):
         """
-        Simulate the transmission of electricity.
+        Receive the power from the generator.
 
         Args:
             input_power (float): The input power received from the generation sources in watts (W).
+        
+        Returns:
+            None
+        """
+
+        self.input_power = input_power
+
+    def transmit(self):
+        """
+        Simulate the transmission of electricity.
 
         Returns:
             float: The output power delivered to substations in watts (W).
         """
-        self.input_power = input_power
         # Simulate power loss over distance
         loss_factor = min((1 - self.efficiency) * self.distance / 100, 1)  # Cap loss factor at 1
         self.output_power = max(self.input_power * (1 - loss_factor), 0)  # Ensure non-negative output power
