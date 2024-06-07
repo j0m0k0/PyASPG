@@ -2,22 +2,21 @@
 import os
 import csv
 import simpy
-from pyaspg.management.control_system import ControlSystem
-from pyaspg.management.net_aggregator import NetAggregator
-from pyaspg.management.utility_company import UtilityCompany
-from pyaspg.communication.smart_meter import SmartMeter
-from pyaspg.communication.communication_network import CommunicationNetwork
+from pyaspg.management import ControlSystem, NetAggregator, UtilityCompany
+from pyaspg.communication import SmartMeter, CommunicationNetwork
 from pyaspg.prosume import Prosumer
-from pyaspg.generation.power_plant import PowerPlant
-from pyaspg.generation.solar_panel import SolarPanel
-from pyaspg.generation.wind_turbine import WindTurbine
-from pyaspg.distribution.transmitter import Transmitter
-from pyaspg.distribution.distributor import Distributor
-from pyaspg.distribution.substation import Substation
-from pyaspg.simulation.grid_creator import PyASPGCreator
-from pyaspg.simulation.data_log import DataLog
-from pyaspg.simulation.connection_handler import GeneratorToTransmitterHandler, TransmitterToSubstationHandler, SubstationToDistributorHandler, DistributorToProsumerHandler
+from pyaspg.generation import PowerPlant, SolarPanel, WindTurbine
+from pyaspg.distribution import Transmitter, Distributor, Substation
 from pyaspg.utils import log_me
+from .grid_creator import PyASPGCreator
+from .data_log import DataLog
+
+from .connection_handler import (
+    GeneratorToTransmitterHandler,
+    TransmitterToSubstationHandler,
+    SubstationToDistributorHandler,
+    DistributorToProsumerHandler
+)
 
 
 @log_me
@@ -57,6 +56,10 @@ class GridSimulator:
 
         def run_simulation_step(env):
             while True:
+                # Reset power_to_prosumers for all distributors
+                for distributor in components['distributors']:
+                    distributor.reset_power_to_prosumers()
+
                 log_and_handle(env.now)
                 yield env.timeout(timestep)
         

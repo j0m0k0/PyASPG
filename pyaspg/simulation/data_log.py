@@ -20,7 +20,7 @@ class DataLog:
                 
                 # Define headers
                 if component_type == 'prosumers':
-                    header = ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'stored_energy', 'net_power']
+                    header = ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'stored_energy', 'net_power', 'distributor_name']
                 else:
                     header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
 
@@ -55,7 +55,8 @@ class DataLog:
                             component.net_power_before,
                             component.received_power,
                             component.stored_energy,
-                            component.net_power
+                            component.net_power,
+                            component.distributor_name
                         ])
                     else:
                         data += [getattr(component, attr) for attr in vars(component) if attr != 'env']

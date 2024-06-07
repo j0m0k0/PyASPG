@@ -9,19 +9,24 @@ from pyaspg.management import NetAggregator, UtilityCompany, ControlSystem
 grid_creator = PyASPGCreator()
 
 # Create components
-household = Prosumer(name="Household 1", prosumer_type="House", storage_capacity=5000, consumption_file="consumption_patterns/2006-12-16.csv", production_pattern=(600, 150))
-communication_network = CommunicationNetwork(name="Smart Grid Network", reliability=0.99)
-smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
-aggregator = NetAggregator(name="Data Aggregator 1")
-utility_company = UtilityCompany(name="Utility Company 1")
-control_system = ControlSystem(name="Control System 1")
 
-wind_turbine = WindTurbine(name="Wind Turbine 1", nominal_capacity=200000000, voltage=25000)
-solar_panel = SolarPanel(name="Solar Panel 1", nominal_capacity=100000000, voltage=25000)
+wind_turbine = WindTurbine(name="WT1", nominal_capacity=2000, voltage=25000)
+solar_panel = SolarPanel(name="SP1", nominal_capacity=100000000, voltage=25000)
+transmitter = Transmitter(name="HVL1", efficiency=0.97, distance=100)
+substation = Substation(name="MS1", input_voltage=25000, output_voltage=10000, efficiency=0.98)
+distributor = Distributor(name="LVL1", efficiency=0.9, distance=10)
 
-transmitter = Transmitter(name="High Voltage Line 1", efficiency=0.97, distance=100)
-distributor = Distributor(name="Low Voltage Line 1", efficiency=0.9, distance=10)
-substation = Substation(name="Main Substation", input_voltage=25000, output_voltage=10000, efficiency=0.98)
+
+p_to_d = []
+for i in range(1):
+    _h = Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=5000, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(600, 150))
+    p_to_d.append((distributor, _h))
+
+# communication_network = CommunicationNetwork(name="SGN", reliability=0.99)
+# aggregator = NetAggregator(name="NA1")
+# utility_company = UtilityCompany(name="UC1")
+# control_system = ControlSystem(name="CS1")
+# smart_meter = SmartMeter(prosumer=household, communication_network=communication_network)
 
 # Define connections between components with parameters
 grid_creator.define_connections(
@@ -31,7 +36,7 @@ grid_creator.define_connections(
     ],
     transmitter_to_substation=[(transmitter, substation)],
     substation_to_distributor=[(substation, distributor)],
-    distributor_to_prosumer=[(distributor, household)]
+    distributor_to_prosumer=p_to_d
 )
 
 # Run the simulation

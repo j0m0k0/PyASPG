@@ -13,26 +13,23 @@ class DistributorToProsumerHandler(BaseHandler):
             params (dict): Additional parameters for the connection.
             timestep (int): The current timestep in the simulation.
         """
-        # Generate power consumption and production, updating the net power
-        target.generate_consumption()
-        print(f"{target.net_power=}")
-        target.generate_production()
-        # target.produce(10000)
-        print(f"{target.net_power=}")
+        # Generate power consumption, production and update the net
+        random_consumption = target.generate_consumption()
+        random_generation = target.generate_production()
         
         # Determine how much power the prosumer needs
         power_needed = target.net_power
         
-        # If power is still needed after using stored energy, pull from the distributor
-        if power_needed > 0:
-            print("Power Needed")
+        # Prosumer first uses stored energy
+        target.consume(power_needed)
+
+        # Any remaining power needed is pulled from the distributor
+        remaining_power_needed = target.net_power
+        if remaining_power_needed > 0:
             available_power = source.distribute()
-            power_to_receive = min(power_needed, available_power)
-            print(f"{power_to_receive=}")
-            target.receive(power_to_receive)
+            power_to_receive = min(remaining_power_needed, available_power)
+            target.receive(power_to_receive, source.name)
             target.received_power = power_to_receive  # Track received power
-            print(f"{target.net_power=}")
         else:
-            print("Not Needed")
             target.received_power = 0  # No power received from distributor
-        print("#"*50)
+            target.distributor_name = ""

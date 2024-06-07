@@ -8,6 +8,7 @@ class Distributor:
         efficiency (float): The efficiency of the distribution (a factor between 0 and 1).
         output_power (float): The output power delivered to end-users in watts (W).
         distance (float): The distance over which the power is distributed in kilometers (km).
+        power_to_prosumers (float): The total amount of power sent to prosumers in watts (W).
     """
 
     def __init__(self, name, efficiency=0.9, distance=10):
@@ -27,6 +28,7 @@ class Distributor:
         self.efficiency = efficiency
         self.distance = distance
         self.output_power = 0
+        self.power_to_prosumers = 0
 
     def receive(self, input_power):
         """
@@ -34,19 +36,12 @@ class Distributor:
 
         Args:
             input_power (float): The input power received from the generation sources in watts (W).
-        
-        Returns:
-            None
         """
-
         self.input_power = input_power
 
     def distribute(self):
         """
         Simulate the distribution of electricity.
-
-        Args:
-            
 
         Returns:
             float: The output power delivered to end-users in watts (W).
@@ -56,7 +51,14 @@ class Distributor:
         self.output_power = max(self.input_power * (1 - loss_factor), 0)  # Ensure non-negative output power
         return self.output_power
 
+    def reset_power_to_prosumers(self):
+        """
+        Reset the power_to_prosumers value at each timestep.
+        """
+        self.power_to_prosumers = 0
+
     def __str__(self):
         """Return a string representation of the distributor."""
         return (f"{self.name} (Input Power: {self.input_power} W, Output Power: {self.output_power} W, "
-                f"Efficiency: {self.efficiency * 100}%, Distance: {self.distance} km)")
+                f"Efficiency: {self.efficiency * 100}%, Distance: {self.distance} km, "
+                f"Power to Prosumers: {self.power_to_prosumers} W)")

@@ -58,12 +58,13 @@ class Prosumer:
             self.stored_energy += stored_energy
             self._net_power -= (remaining_amount - stored_energy)
 
-    def receive(self, power):
+    def receive(self, power, distributor_name):
         """
         Receive power from the distribution line.
 
         Args:
             power (float): The amount of power received in watts (W).
+            distributor_name (str): The name of the distributor providing the power.
         """
         # Track values before receiving power
         self.net_power_before = self._net_power
@@ -74,8 +75,9 @@ class Prosumer:
         self._net_power -= received_power
         self.stored_energy = min(self.stored_energy + (power - received_power), self.storage_capacity)
 
-        # Track received power
+        # Track received power and distributor name
         self.received_power = received_power
+        self.distributor_name = distributor_name
         
     @property
     def net_power(self):
