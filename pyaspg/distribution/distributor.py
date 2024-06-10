@@ -8,6 +8,7 @@ class Distributor:
         efficiency (float): The efficiency of the distribution (a factor between 0 and 1).
         output_power (float): The output power delivered to end-users in watts (W).
         distance (float): The distance over which the power is distributed in kilometers (km).
+        available_power (float): The available power that can be distributed to end-users in watts (W).
     """
 
     def __init__(self, name, efficiency=0.9, distance=10):
@@ -27,6 +28,7 @@ class Distributor:
         self.efficiency = efficiency
         self.distance = distance
         self.output_power = 0
+        self.available_power = 0
 
     def receive(self, input_power):
         """
@@ -36,6 +38,7 @@ class Distributor:
             input_power (float): The input power received from the generation sources in watts (W).
         """
         self.input_power = input_power
+        self.available_power = self.distribute()  # Update available power
 
     def distribute(self):
         """

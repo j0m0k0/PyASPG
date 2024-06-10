@@ -50,6 +50,7 @@ class GridSimulator:
                 handler = self.connection_handlers.get(connection_type)
                 if handler:
                     for source, target, params in connection_list:
+                        # print(t // timestep, "\nHandle connection\n", source, "\n", target, "\n", params)
                         handler.handle_connection(source, target, params, t // timestep)
 
             self.data_log.log_data(t, components, connections)
