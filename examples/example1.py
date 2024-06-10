@@ -19,7 +19,7 @@ distributor = Distributor(name="Distributor1", efficiency=0.9, distance=10)
 
 p_to_d = []
 # BUG: Sum of received powers for prosumers, in a timestep, exceeds the total produced power.
-for i in range(10):
+for i in range(50):
     _h = Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=5000, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(600, 150))
     p_to_d.append((distributor, _h))
 
