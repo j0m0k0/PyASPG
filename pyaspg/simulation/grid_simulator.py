@@ -55,11 +55,7 @@ class GridSimulator:
             self.data_log.log_data(t, components, connections)
 
         def run_simulation_step(env):
-            while True:
-                # Reset power_to_prosumers for all distributors
-                for distributor in components['distributors']:
-                    distributor.reset_power_to_prosumers()
-
+            while True:                
                 log_and_handle(env.now)
                 yield env.timeout(timestep)
         

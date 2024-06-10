@@ -10,7 +10,7 @@ grid_creator = PyASPGCreator()
 
 # Create components
 
-wind_turbine = WindTurbine(name="WT1", nominal_capacity=2000, voltage=25000)
+wind_turbine = WindTurbine(name="WT1", nominal_capacity=20000, voltage=25000)
 solar_panel = SolarPanel(name="SP1", nominal_capacity=100000000, voltage=25000)
 transmitter = Transmitter(name="HVL1", efficiency=0.97, distance=100)
 substation = Substation(name="MS1", input_voltage=25000, output_voltage=10000, efficiency=0.98)

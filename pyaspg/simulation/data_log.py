@@ -30,11 +30,10 @@ class DataLog:
                         if 'wind_speed' in params:
                             header.append('wind_speed')
                         elif 'sunlight' in params:
-                            header.append('sunlight')
-                
-                # Add specific headers for distributors
-                if component_type == 'distributors':
-                    header.extend(['power_to_prosumers'])
+                            header.append('sunlight')                      
+
+                # Remove duplicate columns
+                header = list(dict.fromkeys(header))
 
                 self.writers[component_type].writerow(header)
                 
@@ -68,12 +67,7 @@ class DataLog:
                                 if 'wind_speed' in params:
                                     data.append(params['wind_speed'][timestep // 10])
                                 elif 'sunlight' in params:
-                                    data.append(params['sunlight'][timestep // 10])
-                    
-                    # Add specific data for distributors
-                    if component_type == 'distributors':
-                        power_to_prosumers = sum([target.received_power for _, target, _ in connections['distributor_to_prosumer'] if _ == component])
-                        data.append(power_to_prosumers)
+                                    data.append(params['sunlight'][timestep // 10])                                    
 
                     writer.writerow(data)
 

@@ -98,6 +98,7 @@ class Prosumer:
         """
         if self.consumption_pattern_parser:
             consumption = next(self.consumption_pattern_parser)
+            # print("Consumption value from parser:", consumption)
             self.consume(consumption)
             return consumption
         else:

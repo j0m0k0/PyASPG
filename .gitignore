@@ -7,3 +7,4 @@ simulation_results/
 *.zip
 logs/
 consumption_patterns/
+test_simulation_results/
