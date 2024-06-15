@@ -17,8 +17,18 @@ PyASPG is a simulation framework for modeling and analyzing smart power grids. I
 To install PyASPG, clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/pyaspg.git
+git clone https://github.com/j0m0k0/pyaspg.git
 cd pyaspg
 pip install -r requirements.txt
+```
+
+## Contributing
+Contributions are welcome! Please submit a pull request or open an issue to discuss your ideas.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Acknowledgments
+Special thanks to all contributors and the open-source community for their support and contributions to this project.
 
 
