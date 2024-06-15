@@ -31,16 +31,17 @@ class SmartMeter:
             dict: The measured data including usage, production, and net power in watts (W).
         """
         self.data = {
-            "usage": self.prosumer.total_consumption,
-            "production": self.prosumer.total_production,
-            "net_power": self.prosumer.net_power,
+            "prosumer": self.prosumer.name,
+            "total_consumption": self.prosumer.total_consumption,
+            "total_production": self.prosumer.total_production,
+            "net_power": self.prosumer.net_power_before,
             "stored_energy": self.prosumer.stored_energy
         }
         return self.data
 
     def send_data(self):
         """
-        Simulate sending real-time usage and production data to utility companies and third-party aggregators.
+        Simulate sending real-time usage and production data to third-party aggregators.
 
         Returns:
             bool: True if the data was transmitted successfully, False otherwise.
@@ -53,6 +54,6 @@ class SmartMeter:
     def __str__(self):
         """Return a string representation of the smart meter."""
         data = self.data
-        return (f"SmartMeter for {self.prosumer.name} (Usage: {data['usage']} W, "
-                f"Production: {data['production']} W, Net Power: {data['net_power']} W, "
+        return (f"SmartMeter for {self.prosumer.name} (Total Consumption: {data['total_consumption']} W, "
+                f"Total Production: {data['total_production']} W, Net Power: {data['net_power']} W, "
                 f"Stored Energy: {data['stored_energy']} W)")

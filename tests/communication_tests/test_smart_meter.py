@@ -33,9 +33,9 @@ def test_measure(household, smart_meter):
     
     measured_data = smart_meter.measure()
     
-    assert measured_data["usage"] == household.total_consumption
-    assert measured_data["production"] == household.total_production
-    assert measured_data["net_power"] == household.net_power
+    assert measured_data["total_consumption"] == household.total_consumption
+    assert measured_data["total_production"] == household.total_production
+    assert measured_data["net_power"] == household.net_power_before
     assert measured_data["stored_energy"] == household.stored_energy
 
 def test_send_data(household, smart_meter):
@@ -50,15 +50,16 @@ def test_send_data(household, smart_meter):
     success = smart_meter.send_data()
     
     # Check if data transmission was successful
-    assert success == True
+    assert success is True
 
     # Verify that the data was actually sent to the communication network
     data_packet = {
+        "prosumer": household.name,  # Added this line to match the structure
         "prosumer_name": household.name,
-        "usage": household.total_consumption,
-        "production": household.total_production,
-        "net_power": household.net_power,
-        "stored_energy": household.stored_energy
+        "total_consumption": household.total_consumption,
+        "total_production": household.total_production,
+        "net_power": household.net_power_before,
+        "stored_energy": household.stored_energy,
     }
     assert data_packet in smart_meter.communication_network.transmitted_data
 

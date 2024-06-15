@@ -47,3 +47,18 @@ def test_csv_columns_no_duplicates(setup_simulation):
             headers = next(reader)
             print(f"{csv_file=}, {headers=}")
             assert len(headers) == len(set(headers)), f"Duplicate columns found in {csv_file}"
+
+def test_csv_files_non_empty(setup_simulation):
+    output_dir = setup_simulation
+    csv_files = [f for f in os.listdir(output_dir) if f.endswith('.csv')]
+
+    for csv_file in csv_files:
+        file_path = os.path.join(output_dir, csv_file)
+        with open(file_path, 'r', encoding='UTF-8') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+            # Check if the file has more than just the header
+            assert len(rows) > 1, f"The file {csv_file} is empty or only contains the header."
+
+if __name__ == "__main__":
+    pytest.main()

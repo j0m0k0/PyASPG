@@ -3,7 +3,6 @@ from pyaspg.prosume import Prosumer
 from pyaspg.management.utility_company import UtilityCompany
 from pyaspg.utils import log_me
 
-
 @log_me
 class NetAggregator:
     """
@@ -28,7 +27,7 @@ class NetAggregator:
         self.utility_data = {}
         self.commands = {}
 
-    def collect_data(self, smart_meter):
+    def collect_data(self, smart_meter, timestep):
         """
         Collect data from a smart meter.
 
@@ -39,6 +38,8 @@ class NetAggregator:
             bool: True if the data was collected successfully, False otherwise.
         """
         data = smart_meter.measure()
+        data["timestep"] = timestep
+        data["aggregator_name"] = self.name
         if data:
             self.data_collected.append(data)
             return True
@@ -48,14 +49,15 @@ class NetAggregator:
         """
         Aggregate the collected data for utility companies.
         """
-        total_usage = sum(data['usage'] for data in self.data_collected)
-        total_production = sum(data['production'] for data in self.data_collected)
+        total_usage = sum(data['total_consumption'] for data in self.data_collected)
+        total_production = sum(data['total_production'] for data in self.data_collected)
         total_stored_energy = sum(data['stored_energy'] for data in self.data_collected)
         
         self.utility_data = {
-            'total_usage': total_usage,
+            'total_consumption': total_usage,
             'total_production': total_production,
-            'total_stored_energy': total_stored_energy
+            'total_stored_energy': total_stored_energy,
+            'aggregator_name': self.name
         }
 
     def send_data_to_utility(self, utility_company):

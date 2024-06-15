@@ -41,6 +41,8 @@ class Prosumer:
         self.prosumer_type = prosumer_type
         self.net_power_before = 0
         self.stored_energy_before = 0
+        self.last_generated_consumption = 0
+        self.last_generated_production = 0
 
     def _update_net_power(self, amount, is_consumption=False, is_production=False):
         if is_consumption:
@@ -98,6 +100,7 @@ class Prosumer:
         """
         if self.consumption_pattern_parser:
             consumption = next(self.consumption_pattern_parser)
+            self.last_generated_consumption = consumption
             # print("Consumption value from parser:", consumption)
             self.consume(consumption)
             return consumption
@@ -112,6 +115,7 @@ class Prosumer:
             float: The generated power production in watts (W).
         """
         production = max(0, np.random.normal(*self.production_pattern))
+        self.last_generated_production = production
         self.produce(production)
         return production
 

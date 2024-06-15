@@ -21,6 +21,8 @@ class DataLog:
                 # Define headers
                 if component_type == 'prosumers':
                     header = ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'stored_energy', 'net_power', 'distributor_name']
+                elif component_type == 'smart_meters':
+                    header = ['timestep', 'prosumer_name', 'total_consumption', 'total_production', 'net_read', 'is_sent', 'consumption', 'production']
                 else:
                     header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
 
@@ -30,7 +32,11 @@ class DataLog:
                         if 'wind_speed' in params:
                             header.append('wind_speed')
                         elif 'sunlight' in params:
-                            header.append('sunlight')                      
+                            header.append('sunlight')
+
+                # Add specific headers for distributors
+                if component_type == 'distributors':
+                    header.append('power_to_prosumers')
 
                 # Remove duplicate columns
                 header = list(dict.fromkeys(header))
@@ -57,9 +63,20 @@ class DataLog:
                             component.net_power,
                             component.distributor_name
                         ])
+                    elif component_type == 'smart_meters':
+                        is_sent = 1 if component.communication_network.transmit_data(component.data) else 0
+                        data.extend([
+                            component.prosumer.name,
+                            component.prosumer.total_consumption,
+                            component.prosumer.total_production,
+                            component.prosumer.net_power_before,
+                            is_sent,
+                            component.prosumer.last_generated_consumption,
+                            component.prosumer.last_generated_production
+                        ])
                     else:
                         data += [getattr(component, attr) for attr in vars(component) if attr != 'env']
-                    
+
                     # Add wind_speed or sunlight to the data if applicable
                     if component_type == 'generators':
                         for source, target, params in connections['generator_to_transmitter']:
@@ -67,7 +84,12 @@ class DataLog:
                                 if 'wind_speed' in params:
                                     data.append(params['wind_speed'][timestep // 10])
                                 elif 'sunlight' in params:
-                                    data.append(params['sunlight'][timestep // 10])                                    
+                                    data.append(params['sunlight'][timestep // 10])
+
+                    # Add specific data for distributors
+                    if component_type == 'distributors':
+                        power_to_prosumers = sum([target.received_power for _, target, _ in connections['distributor_to_prosumer'] if _ == component])
+                        data.append(power_to_prosumers)
 
                     writer.writerow(data)
 

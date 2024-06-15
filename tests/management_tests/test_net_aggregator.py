@@ -35,7 +35,7 @@ def test_collect_data(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_consumption()
     smart_meter.prosumer.generate_production()
     
-    success = net_aggregator.collect_data(smart_meter)
+    success = net_aggregator.collect_data(smart_meter, timestep=1)
     assert success is True
     assert len(net_aggregator.data_collected) == 1
 
@@ -46,10 +46,10 @@ def test_aggregate_data(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_consumption()
     smart_meter.prosumer.generate_production()
     
-    net_aggregator.collect_data(smart_meter)
+    net_aggregator.collect_data(smart_meter, timestep=1)
     net_aggregator.aggregate_data()
     
-    assert net_aggregator.utility_data["total_usage"] == smart_meter.prosumer.total_consumption
+    assert net_aggregator.utility_data["total_consumption"] == smart_meter.prosumer.total_consumption
     assert net_aggregator.utility_data["total_production"] == smart_meter.prosumer.total_production
     assert net_aggregator.utility_data["total_stored_energy"] == smart_meter.prosumer.stored_energy
 
@@ -70,7 +70,7 @@ def test_send_data_to_utility(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_consumption()
     smart_meter.prosumer.generate_production()
     
-    net_aggregator.collect_data(smart_meter)
+    net_aggregator.collect_data(smart_meter, timestep=1)
     net_aggregator.aggregate_data()
     net_aggregator.send_data_to_utility(utility_company)
     

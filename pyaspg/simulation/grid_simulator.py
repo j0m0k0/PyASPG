@@ -15,7 +15,10 @@ from .connection_handler import (
     GeneratorToTransmitterHandler,
     TransmitterToSubstationHandler,
     SubstationToDistributorHandler,
-    DistributorToProsumerHandler
+    DistributorToProsumerHandler,
+    ProsumerToSmartMeterHandler,
+    SmartMeterToAggregatorHandler,
+    AggregatorToUtilityHandler,
 )
 
 
@@ -29,6 +32,9 @@ class GridSimulator:
             'transmitter_to_substation': TransmitterToSubstationHandler(),
             'substation_to_distributor': SubstationToDistributorHandler(),
             'distributor_to_prosumer': DistributorToProsumerHandler(),
+            'prosumer_to_smart_meter': ProsumerToSmartMeterHandler(),
+            'smart_meter_to_aggregator': SmartMeterToAggregatorHandler(),
+            'aggregator_to_utility': AggregatorToUtilityHandler()
             # Add other connection handlers here...
         }
 
