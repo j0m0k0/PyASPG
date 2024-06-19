@@ -4,7 +4,7 @@ import numpy as np
 import pyaspg as pya
 
 
-DURATION = 3600
+DURATION = 24*60
 TIMESTEP = 1
 NUMBER_OF_PROSUMERS = 3
 NUMBER_OF_AGGREGATORS = 2
