@@ -41,7 +41,7 @@ class NetAggregator:
         data["timestep"] = timestep
         data["aggregator_name"] = self.name
         if data:
-            self.data_collected.append(data)
+            self.data_collected = [data]
             return True
         return False
 

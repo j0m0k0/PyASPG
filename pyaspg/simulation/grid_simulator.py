@@ -1,6 +1,8 @@
 # grid_simulator.py
 import os
 import csv
+from datetime import datetime
+
 import simpy
 from pyaspg.management import ControlSystem, NetAggregator, UtilityCompany
 from pyaspg.communication import SmartMeter, CommunicationNetwork
@@ -48,6 +50,9 @@ class GridSimulator:
         components = self.creator.components
         connections = self.creator.connections
 
+        self._initialize_simlog(output_dir, components)
+        start_time = datetime.now()
+
         # Create a CSV file for each component type
         self.data_log.initialize_files(components, connections)
 
@@ -68,6 +73,28 @@ class GridSimulator:
         
         env.process(run_simulation_step(env))
         env.run(until=duration)
+        end_time = datetime.now()
 
         # Close CSV files
         self.data_log.close_files()
+
+        self._finalize_simlog(output_dir, start_time, end_time, components)
+
+    def _initialize_simlog(self, output_dir, components):
+        self.simlog_path = os.path.join(output_dir, 'simlog.txt')
+        with open(self.simlog_path, 'w') as log_file:
+            log_file.write("Simulation Log\n")
+            log_file.write("=============================\n")
+            log_file.write(f"Simulation started at: {datetime.now()}\n")
+            log_file.write("-----------------------------\n")
+            log_file.write("Component Counts:\n")
+            for component_type, component_list in components.items():
+                log_file.write(f"{component_type.capitalize()}: {len(component_list)}\n")
+            log_file.write("=============================\n")
+
+    def _finalize_simlog(self, output_dir, start_time, end_time, components):
+        duration = end_time - start_time
+        with open(self.simlog_path, 'a') as log_file:
+            log_file.write(f"Simulation ended at: {end_time}\n")
+            log_file.write(f"Total duration: {duration}\n")
+            log_file.write("=============================\n")

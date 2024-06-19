@@ -17,4 +17,4 @@ class AggregatorToUtilityHandler(BaseHandler):
         source.aggregate_data()
 
         # Send the aggregated data to the utility company
-        source.send_data_to_utility(target)        
+        source.send_data_to_utility(target)

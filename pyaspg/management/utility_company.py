@@ -1,6 +1,5 @@
 from pyaspg.utils import log_me
 
-
 @log_me
 class UtilityCompany:
     """
@@ -21,6 +20,7 @@ class UtilityCompany:
         self.name = name
         self.received_data = []
 
+
     def receive_data(self, data):
         """
         Receive aggregated data from a net aggregator.
@@ -28,15 +28,7 @@ class UtilityCompany:
         Args:
             data (dict): The aggregated data to be received.
         """
-        self.received_data.append(data)
-
-    def manage_grid(self):
-        """
-        Manage the grid based on received data. This is a placeholder for actual grid management logic.
-        """
-        total_usage = sum(d['total_usage'] for d in self.received_data)
-        total_production = sum(d['total_production'] for d in self.received_data)
-        total_stored_energy = sum(d['total_stored_energy'] for d in self.received_data)
+        self.received_data = [data]
 
     def __str__(self):
         """Return a string representation of the utility company."""
