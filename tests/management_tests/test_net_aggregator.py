@@ -2,6 +2,8 @@ import pytest
 from pyaspg.management import NetAggregator, UtilityCompany
 from pyaspg.communication import SmartMeter, CommunicationNetwork
 from pyaspg.prosume import Prosumer
+from pyaspg.generation import WindTurbine, SolarPanel
+from pyaspg.management.control_system import ControlSystem
 
 @pytest.fixture
 def net_aggregator():
@@ -18,6 +20,14 @@ def communication_network():
 @pytest.fixture
 def smart_meter(household, communication_network):
     return SmartMeter(prosumer=household, communication_network=communication_network)
+
+@pytest.fixture
+def control_system():
+    return ControlSystem(name="Control System")
+
+@pytest.fixture
+def generator():
+    return WindTurbine(name="Wind Turbine", nominal_capacity=200000000, voltage=25000, controller=control_system)
 
 def test_net_aggregator_initialization(net_aggregator):
     """
@@ -53,19 +63,19 @@ def test_aggregate_data(net_aggregator, smart_meter):
     assert net_aggregator.utility_data["total_production"] == smart_meter.prosumer.total_production
     assert net_aggregator.utility_data["total_stored_energy"] == smart_meter.prosumer.stored_energy
 
-def test_send_data_to_utility(net_aggregator, smart_meter):
+def test_send_data_to_utility(net_aggregator, smart_meter, generator):
     """
     Test sending aggregated data to a utility company in the NetAggregator class.
     """
     class MockUtilityCompany(UtilityCompany):
-        def __init__(self, name):
-            super().__init__(name)
+        def __init__(self, name, generators):
+            super().__init__(name, generators)
             self.received_data = []
 
         def receive_data(self, data):
             self.received_data.append(data)
 
-    utility_company = MockUtilityCompany(name="Utility Company 1")
+    utility_company = MockUtilityCompany(name="Utility Company 1", generators=[generator])
     
     smart_meter.prosumer.generate_consumption()
     smart_meter.prosumer.generate_production()

@@ -1,6 +1,5 @@
 import os
 import csv
-from pyaspg.generation import WindTurbine, SolarPanel
 from pyaspg.utils import log_me
 
 @log_me
@@ -9,7 +8,64 @@ class DataLog:
         self.output_dir = output_dir
         self.files = {}
         self.writers = {}
-        self.params = {}
+        self.log_config = {           
+            'smart_meters': {
+                'header': ['timestep', 'prosumer_name', 'total_consumption', 'total_production', 'net_read', 'is_sent', 'consumption', 'production'],
+                'data': lambda t, c, conn: [
+                    t, c.prosumer.name, c.prosumer.total_consumption, c.prosumer.total_production, c.prosumer.net_power_before,
+                    1 if c.communication_network.transmit_data(c.data) else 0,
+                    c.prosumer.last_generated_consumption, c.prosumer.last_generated_production
+                ]
+            },
+            'generators': {
+                'header': ['timestep', 'name', 'nominal_capacity', 'input', 'output', 'controller'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.nominal_capacity, c.input, c.output, c.controller.name
+                ]
+            },
+            'transmitters': {
+                'header': ['timestep', 'name', 'input', 'output', 'distance', 'efficiency', 'connected_generators'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.input_power, c.output_power, c.distance, c.efficiency, [g.name for g in c.generators]
+                ]
+            },
+            'substations': {
+                'header': ['timestep', 'name', 'input', 'output', 'efficiency'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.input_power, c.output_power, c.efficiency
+                ]
+            },
+            'distributors': {
+                'header': ['timestep', 'name', 'input', 'output', 'efficiency', 'distance'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.input_power, c.output_power, c.efficiency, c.distance,
+                ]
+            },
+            'prosumers': {
+                'header': ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'net_power', 'stored_energy', 'distributor_name'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.stored_energy_before, c.net_power_before, c.received_power, c.net_power, c.stored_energy, c.distributor_name
+                ]
+            },
+            'aggregators': {
+                'header': ['timestep', 'name', 'data_collected'],
+                'data': lambda t, c, conn: [
+                    t, c.name, c.data_collected[-1]
+                ]
+            },
+            'utility_companies': {
+                'header': ['timestep', 'name', 'generators', 'total_prosumers_consumption', 'total_prosumers_production',],
+                'data': lambda t, c, conn: [
+                    [t, c.name, [g.name for g in c.generators], c.received_data[-1]['total_consumption'], c.received_data[-1]['total_production']]
+                ]
+            },
+            'control_systems': {
+                'header': ['timestep', 'utility_name', 'total_consumption', 'total_production', 'total_stored_energy', 'predicted_demand'],
+                'data': lambda t, c, conn: [
+                    [t, c.utility_data[-1]['utility_name'], c.utility_data[-1]['total_consumption'], c.utility_data[-1]['total_production'], c.utility_data[-1]['total_stored_energy'], c.predicted_demand[c.utility_data[-1]['utility_name']] if c.predicted_demand is not None else 0.0]
+                ]
+            },
+        }
 
     def initialize_files(self, components, connections):
         for component_type, component_list in components.items():
@@ -17,81 +73,24 @@ class DataLog:
                 file_path = os.path.join(self.output_dir, f"{component_type}.csv")
                 self.files[component_type] = open(file_path, 'w', newline='')
                 self.writers[component_type] = csv.writer(self.files[component_type])
-                
-                # Define headers
-                if component_type == 'prosumers':
-                    header = ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'stored_energy', 'net_power', 'distributor_name']
-                elif component_type == 'smart_meters':
-                    header = ['timestep', 'prosumer_name', 'total_consumption', 'total_production', 'net_read', 'is_sent', 'consumption', 'production']
-                else:
-                    header = ['timestep'] + [attr for attr in vars(component_list[0]).keys() if attr != 'env']
 
-                # Add wind_speed or sunlight to the header if applicable
-                if component_type == 'generators':
-                    for source, target, params in connections['generator_to_transmitter']:
-                        if 'wind_speed' in params:
-                            header.append('wind_speed')
-                        elif 'sunlight' in params:
-                            header.append('sunlight')
-
-                # Add specific headers for distributors
-                if component_type == 'distributors':
-                    header.append('power_to_prosumers')
-
-                # Remove duplicate columns
-                header = list(dict.fromkeys(header))
-
+                header = self.log_config.get(component_type, {}).get('header', ['timestep'])
                 self.writers[component_type].writerow(header)
-                
-                # Save params for later use
-                if component_type == 'generators':
-                    self.params[component_type] = params
+
 
     def log_data(self, timestep, components, connections):
         for component_type, component_list in components.items():
             if component_list:
                 writer = self.writers[component_type]
-                for i, component in enumerate(component_list):
-                    data = [timestep]
-                    if component_type == 'prosumers':
-                        data.extend([
-                            component.name,
-                            component.stored_energy_before,
-                            component.net_power_before,
-                            component.received_power,
-                            component.stored_energy,
-                            component.net_power,
-                            component.distributor_name
-                        ])
-                    elif component_type == 'smart_meters':
-                        is_sent = 1 if component.communication_network.transmit_data(component.data) else 0
-                        data.extend([
-                            component.prosumer.name,
-                            component.prosumer.total_consumption,
-                            component.prosumer.total_production,
-                            component.prosumer.net_power_before,
-                            is_sent,
-                            component.prosumer.last_generated_consumption,
-                            component.prosumer.last_generated_production
-                        ])
+                data_func = self.log_config.get(component_type, {}).get('data', lambda t, c, conn: [t])
+
+                for component in component_list:
+                    data = data_func(timestep, component, connections)
+                    if isinstance(data[0], list):  # For control_systems
+                        for d in data:
+                            writer.writerow(d)
                     else:
-                        data += [getattr(component, attr) for attr in vars(component) if attr != 'env']
-
-                    # Add wind_speed or sunlight to the data if applicable
-                    if component_type == 'generators':
-                        for source, target, params in connections['generator_to_transmitter']:
-                            if source == component:
-                                if 'wind_speed' in params:
-                                    data.append(params['wind_speed'][timestep // 10])
-                                elif 'sunlight' in params:
-                                    data.append(params['sunlight'][timestep // 10])
-
-                    # Add specific data for distributors
-                    if component_type == 'distributors':
-                        power_to_prosumers = sum([target.received_power for _, target, _ in connections['distributor_to_prosumer'] if _ == component])
-                        data.append(power_to_prosumers)
-
-                    writer.writerow(data)
+                        writer.writerow(data)
 
     def close_files(self):
         for f in self.files.values():

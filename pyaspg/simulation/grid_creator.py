@@ -58,6 +58,7 @@ class PyASPGCreator:
             "smart_meter_to_aggregator": ("smart_meters", "aggregators"),
             "aggregator_to_utility": ("aggregators", "utility_companies"),
             "utility_to_control": ("utility_companies", "control_systems"),
+            "control_to_generator": ("control_systems", "generators")
         }
 
     def define_connections(self, **kwargs):

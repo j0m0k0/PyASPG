@@ -5,15 +5,24 @@ from pyaspg.utils import log_me
 
 @log_me
 class GeneratorToTransmitterHandler(BaseHandler):
+    """
+        Handler for Generator to Transmitter Connections
+    """
+    def __init__(self):
+        super().__init__()
+
+        self.transmitter_groups = {}
     def handle_connection(self, source, target, params, timestep):
+        print("Handler called for", source.name)
+    
+        print(self.transmitter_groups)
         if isinstance(source, WindTurbine):
-            wind_speed = params.get('wind_speed', [])[timestep]
-            output_power = source.generate(wind_speed)
+            output_power = source.generate()
         elif isinstance(source, SolarPanel):
             sunlight = params.get('sunlight', [])[timestep]
             output_power = source.generate(sunlight)
         elif isinstance(source, PowerPlant):
             output_power = source.generate()
         
-        target.receive(output_power)
+        target.receive(output_power, timestep)
 

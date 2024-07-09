@@ -28,9 +28,10 @@ class DistributorToProsumerHandler(BaseHandler):
         remaining_power_needed = target.net_power
         if remaining_power_needed > 0 and source.available_power > 0:
             power_to_receive = min(remaining_power_needed, source.available_power)
-            # print("Available power", available_power)
+            # print("Available power", source.available_power)
             # print("Power to receive", power_to_receive)
             target.receive(power_to_receive, source.name)
+            # print("Received by target=", target.received_power)
             source.available_power -= power_to_receive 
             target.received_power = power_to_receive  # Track received power
         else:

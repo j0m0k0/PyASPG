@@ -6,23 +6,21 @@ class WindTurbine(Generator):
     Class representing a wind turbine.
     """
 
-    def generate(self, wind_speed):
+    def generate(self):
         """
         Generate electricity based on the wind speed.
 
         Args:
             wind_speed (float): The wind speed, a factor between 0 and 1.
         """
-        if wind_speed < 0 or wind_speed > 1:
-            raise ValueError("Wind speed must be a value between 0 and 1")
-        
-        if wind_speed:
-            nominal_output = self.nominal_capacity * wind_speed
-            self.output = np.random.normal(nominal_output, self.std_dev * nominal_output)
-            self.output = min(self.output, nominal_output)
-        else:
-            self.output = 0
+        print("Generate Function", self.name)
+        self.input = self._get_demand()
+        self.input = abs(self.nominal_capacity * self.input) if self.input < 0 else self.input
+        # self.input = 2000
+        nominal_output = self.nominal_capacity
+        self.output = min(self.input, nominal_output)
         self.calculate_current()
+        # print(f"{self.output=}")
         return self.output
 
     def __str__(self):

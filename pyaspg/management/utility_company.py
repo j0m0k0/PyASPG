@@ -8,18 +8,20 @@ class UtilityCompany:
     Attributes:
         name (str): The name of the utility company.
         received_data (list): The list of aggregated data packets received from net aggregators.
+        generators (list): The list of generators associated with this utility company.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, generators):
         """
         Initialize a UtilityCompany instance.
 
         Args:
             name (str): The name of the utility company.
+            generators (list): The list of generators associated with this utility company.
         """
         self.name = name
         self.received_data = []
-
+        self.generators = generators
 
     def receive_data(self, data):
         """

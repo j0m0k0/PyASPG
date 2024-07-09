@@ -13,7 +13,7 @@ class Generator:
         std_dev (float): The standard deviation for output variation.
     """
 
-    def __init__(self, name, nominal_capacity, voltage, std_dev=0.1):
+    def __init__(self, name, nominal_capacity, voltage, controller=None, std_dev=0.1):
         """
         Initialize a Generator instance.
 
@@ -22,13 +22,17 @@ class Generator:
             nominal_capacity (float): The nominal electricity generation capacity in watts (W).
             voltage (float): The voltage in volts (V).
             std_dev (float): The standard deviation for output variation.
+            controller (SystemController): The controller of generator.
         """
         self.name = name
         self.nominal_capacity = nominal_capacity
         self.voltage = voltage
         self.current = 0
+        self.input = 0
         self.output = 0
         self.std_dev = std_dev
+        self.controller = controller
+
 
     def generate(self, input_resource):
         """
@@ -45,6 +49,11 @@ class Generator:
             self.current = self.output / self.voltage
         else:
             self.current = 0
+
+    def _get_demand(self):
+        """Return the demanded power by the system controller"""
+        print("_get_demand called in the generator object")
+        return self.controller.get_demand(self.name)
 
     def __str__(self):
         """Return a string representation of the generator."""

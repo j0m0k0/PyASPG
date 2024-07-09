@@ -1,6 +1,4 @@
-from pyaspg.management.net_aggregator import NetAggregator
 from pyaspg.utils import log_me
-
 
 @log_me
 class ControlSystem:
@@ -9,84 +7,114 @@ class ControlSystem:
 
     Attributes:
         name (str): The name of the control system.
-        grid_data (dict): The data from various parts of the grid.
+        utility_companies (list): The list of utility companies.
+        utility_data (list): The data received from utility companies.
+        safety_margin (float): The safety margin for power generation to prevent blackouts.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, safety_margin=1.2):
         """
         Initialize a ControlSystem instance.
 
         Args:
             name (str): The name of the control system.
+            safety_margin (float): The safety margin for power generation to prevent blackouts.
         """
         self.name = name
-        self.grid_data = {
-            "generation": {},
-            "transmission": {},
-            "distribution": {},
-            "consumption": {}
-        }
+        self.utility_companies = []
+        self.utility_data = []
+        self.safety_margin = safety_margin
+        self.predicted_demand = None
 
-    def update_grid_data(self, component, data):
+    def register_utility_company(self, utility_company):
         """
-        Update the grid data for a specific component.
+        Add a utility company to the list of utility companies under the control of this control system.
 
         Args:
-            component (str): The component of the grid (generation, transmission, distribution, consumption).
-            data (dict): The data to update for the specified component.
+            utility_company: The utility company to be registered.
         """
-        if component in self.grid_data:
-            self.grid_data[component].update(data)
-        else:
-            raise ValueError("Invalid grid component")
+        self.utility_companies.append(utility_company)
 
-    def analyze_grid(self):
+    def receive_data(self, data):
         """
-        Analyze the grid data to optimize operations, manage demand, and ensure stability.
+        Receive data from utility companies.
+
+        Args:
+            data (dict): The data to be received from utility companies.
+        """
+        # print(f"{data=}")
+        self.utility_data.append(data)
+
+    def predict_demand(self):
+        """
+        Predict future power needs and set the predicted_demand attribute for each utility company.
+
+        Args:
+            future_timesteps (int): Number of future timesteps to predict.
+        """
+        print("predict_demand method in control_system called.")
+        if len(self.utility_data) < 2:
+            print("Not enough data to make a prediction")
+            return
+        else:
+            print(f"{self.utility_data=}")
+
+        utility_demand_predictions = {}
+        for utility_company in self.utility_companies:
+            relevant_data = [data for data in self.utility_data if data['utility_name'] == utility_company.name]
+            if len(relevant_data) >= 2:
+                recent_data = relevant_data[-2:]
+                current_consumption = recent_data[-1]['total_consumption'] - recent_data[-2]['total_consumption']
+                utility_demand_predictions[utility_company.name] = current_consumption * self.safety_margin
+
+        self.predicted_demand = utility_demand_predictions
+        print(f"Predicted future consumption: {utility_demand_predictions}")
+
+    def distribute_demand(self):
+        """
+        Distribute the predicted demand among the registered generators based on their nominal capacities.
 
         Returns:
-            dict: The commands to optimize grid operations.
+            dict: A dictionary with generator names as keys and their respective power demands as values.
         """
-        total_generation = sum(self.grid_data["generation"].values())
-        total_consumption = sum(self.grid_data["consumption"].values())
-        total_transmission = sum(self.grid_data["transmission"].values())
-        total_distribution = sum(self.grid_data["distribution"].values())
+        demand_distribution = {}
+        print(f"{self.predicted_demand=}")
 
-        commands = {
-            "load_balancing": None,
-            "demand_response": None,
-            "stability": None
-        }
+        for utility_company in self.utility_companies:
+            utility_demand = self.predicted_demand.get(utility_company.name, 0) if self.predicted_demand else -1
+            total_nominal_capacity = sum(gen.nominal_capacity for gen in utility_company.generators)
 
-        # Example logic for load balancing
-        if total_generation > total_consumption:
-            commands["load_balancing"] = "Reduce generation"
-        elif total_generation < total_consumption:
-            commands["load_balancing"] = "Increase generation"
+            for generator in utility_company.generators:
+                share = generator.nominal_capacity / total_nominal_capacity
+                demand_distribution[generator.name] = utility_demand * share
+        print(f"{demand_distribution=}")
+        return demand_distribution
 
-        # Example logic for demand response
-        if total_consumption > total_generation * 0.9:
-            commands["demand_response"] = "Send demand response signal to consumers"
-
-        # Example logic for stability
-        if total_transmission > total_generation * 0.8 or total_distribution > total_generation * 0.8:
-            commands["stability"] = "Adjust transmission and distribution to ensure stability"
-
-        return commands
-
-    def issue_commands(self, net_aggregator, commands):
+    def get_demand(self, generator_name):
         """
-        Issue commands to net aggregators to optimize grid operations.
+        Get the predicted demand for a specific generator.
 
         Args:
-            net_aggregator (NetAggregator): The net aggregator to send commands to.
-            commands (dict): The commands to be issued.
+            generator_name (str): The name of the generator.
+
+        Returns:
+            float: The predicted power demand for the generator.
         """
-        for command, message in commands.items():
-            if message:
-                net_aggregator.receive_command(command, message)
+        demand_distribution = self.distribute_demand()
+
+        return demand_distribution.get(generator_name, 0)
+
+    def update_prediction(self, timestep, update_interval):
+        """
+        Update the demand prediction at specified intervals.
+
+        Args:
+            timestep (int): The current timestep of the simulation.
+            update_interval (int): The interval at which to update the prediction.
+        """
+        if timestep % update_interval == 0:
+            self.predict_demand()
 
     def __str__(self):
         """Return a string representation of the control system."""
-        return (f"ControlSystem {self.name} (Grid Data: {self.grid_data})")
-
+        return (f"ControlSystem {self.name} (Utility Companies: {self.utility_companies})")

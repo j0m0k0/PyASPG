@@ -21,6 +21,7 @@ from .connection_handler import (
     ProsumerToSmartMeterHandler,
     SmartMeterToAggregatorHandler,
     AggregatorToUtilityHandler,
+    UtilityToControlHandler,
 )
 
 
@@ -28,7 +29,8 @@ from .connection_handler import (
 class GridSimulator:
     def __init__(self, creator: PyASPGCreator):
         self.creator = creator
-        self.data_log = None        
+        self.data_log = None
+        self.simlog_path = None
         self.connection_handlers = {
             'generator_to_transmitter': GeneratorToTransmitterHandler(),
             'transmitter_to_substation': TransmitterToSubstationHandler(),
@@ -36,11 +38,12 @@ class GridSimulator:
             'distributor_to_prosumer': DistributorToProsumerHandler(),
             'prosumer_to_smart_meter': ProsumerToSmartMeterHandler(),
             'smart_meter_to_aggregator': SmartMeterToAggregatorHandler(),
-            'aggregator_to_utility': AggregatorToUtilityHandler()
+            'aggregator_to_utility': AggregatorToUtilityHandler(),
+            'utility_to_control': UtilityToControlHandler(),
             # Add other connection handlers here...
         }
 
-    def run_simulation(self, duration, timestep, output_dir):
+    def run_simulation(self, duration, timestep, control_clock, output_dir):
         self.data_log = DataLog(output_dir)
         env = simpy.Environment()
         
@@ -61,14 +64,19 @@ class GridSimulator:
                 handler = self.connection_handlers.get(connection_type)
                 if handler:
                     for source, target, params in connection_list:
-                        # print(t // timestep, "\nHandle connection\n", source, "\n", target, "\n", params)
                         handler.handle_connection(source, target, params, t // timestep)
-
             self.data_log.log_data(t, components, connections)
 
         def run_simulation_step(env):
-            while True:                
+            while True:
+                print("\nTimestep:", env.now)
                 log_and_handle(env.now)
+
+                # Update prediction every update_interval timesteps
+                control_system = self._get_control_system(components)
+                if control_system:
+                    control_system.update_prediction(env.now, update_interval=control_clock)
+
                 yield env.timeout(timestep)
         
         env.process(run_simulation_step(env))
@@ -98,3 +106,7 @@ class GridSimulator:
             log_file.write(f"Simulation ended at: {end_time}\n")
             log_file.write(f"Total duration: {duration}\n")
             log_file.write("=============================\n")
+
+    def _get_control_system(self, components):
+        control_systems = components.get('control_systems', [])
+        return control_systems[0] if control_systems else None

@@ -1,9 +1,10 @@
 import pytest
-from pyaspg.management.utility_company import UtilityCompany
+from pyaspg import UtilityCompany, WindTurbine
 
 @pytest.fixture
 def utility_company():
-    return UtilityCompany(name="Utility Company 1")
+    wind_turbine = WindTurbine(name='WT1', nominal_capacity=5000, voltage=10000)
+    return UtilityCompany(name="Utility Company 1", generators=[wind_turbine])
 
 def test_utility_company_initialization(utility_company):
     """
