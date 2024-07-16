@@ -45,8 +45,7 @@ def test_collect_data(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_consumption()
     smart_meter.prosumer.generate_production()
     
-    success = net_aggregator.collect_data(smart_meter, timestep=1)
-    assert success is True
+    net_aggregator.collect_data(smart_meter, timestep=1)
     assert len(net_aggregator.data_collected) == 1
 
 def test_aggregate_data(net_aggregator, smart_meter):

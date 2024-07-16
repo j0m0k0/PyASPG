@@ -13,9 +13,7 @@ class GeneratorToTransmitterHandler(BaseHandler):
 
         self.transmitter_groups = {}
     def handle_connection(self, source, target, params, timestep):
-        print("Handler called for", source.name)
     
-        print(self.transmitter_groups)
         if isinstance(source, WindTurbine):
             output_power = source.generate()
         elif isinstance(source, SolarPanel):

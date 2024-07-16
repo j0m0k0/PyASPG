@@ -4,19 +4,20 @@ import numpy as np
 import pyaspg as pya
 
 
-DURATION = 60
+DURATION = 1440
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 100
+NUMBER_OF_PROSUMERS = 1500
 NUMBER_OF_AGGREGATORS = 1
 CONTROL_CLOCK = 1
 
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
 
-wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=50000, voltage=25000, controller=control_system)
-wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=30000, voltage=25000, controller=control_system)
-# wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=20000, voltage=25000, controller=control_system)
+wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=5000000, voltage=25000, controller=control_system)
+wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=8000000, voltage=25000, controller=control_system)
+wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=4000000, voltage=25000, controller=control_system)
+wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=1000000, voltage=25000, controller=control_system)
 
-transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2])
+transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4])
 # transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
 
 substation = pya.Substation(name="S1", input_voltage=25000, output_voltage=10000, efficiency=1.0)
@@ -25,7 +26,7 @@ distributor = pya.Distributor(name="D1", efficiency=1.0, distance=10)
 
 communication_network = pya.CommunicationNetwork(name="SGN", reliability=1.0)
 
-utility_company = pya.UtilityCompany(name="UC1", generators=[wind_turbine, wind_turbine2]) # This is correct
+utility_company = pya.UtilityCompany(name="UC1", generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4]) # This is correct
 control_system.register_utility_company(utility_company)
 
 # utility_company2 = pya.UtilityCompany(name="UC2")
@@ -44,7 +45,7 @@ for j in range(NUMBER_OF_AGGREGATORS):
     aggregators_list.append(_a)
 
 for i in range(NUMBER_OF_PROSUMERS):
-    _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(600, 150)) # TODO production_pattern should be aligned with date and time
+    _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
     _selected_a = aggregators_list[random.randint(0, (NUMBER_OF_AGGREGATORS - 1))]
     d_to_p.append((distributor, _h))
@@ -60,6 +61,8 @@ my_grid.define_connections(
         (wind_turbine, transmitter),
         # (wind_turbine3, transmitter2),
         (wind_turbine2, transmitter),
+        (wind_turbine3, transmitter),
+        (wind_turbine4, transmitter),
     ],
     transmitter_to_substation=[(transmitter, substation)],
     substation_to_distributor=[(substation, distributor)],

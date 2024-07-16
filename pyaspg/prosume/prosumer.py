@@ -80,6 +80,7 @@ class Prosumer:
         # Track received power and distributor name
         self.received_power = received_power
         self.distributor_name = distributor_name
+
         
     @property
     def net_power(self):
@@ -101,7 +102,6 @@ class Prosumer:
         if self.consumption_pattern_parser:
             consumption = next(self.consumption_pattern_parser)
             self.last_generated_consumption = consumption
-            # print("Consumption value from parser:", consumption)
             self.consume(consumption)
             return consumption
         else:

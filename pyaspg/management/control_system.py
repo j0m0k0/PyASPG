@@ -42,33 +42,33 @@ class ControlSystem:
         Args:
             data (dict): The data to be received from utility companies.
         """
-        # print(f"{data=}")
         self.utility_data.append(data)
 
     def predict_demand(self):
         """
         Predict future power needs and set the predicted_demand attribute for each utility company.
-
-        Args:
-            future_timesteps (int): Number of future timesteps to predict.
         """
-        print("predict_demand method in control_system called.")
-        if len(self.utility_data) < 2:
-            print("Not enough data to make a prediction")
+        if not self.utility_data:
             return
-        else:
-            print(f"{self.utility_data=}")
+
 
         utility_demand_predictions = {}
         for utility_company in self.utility_companies:
             relevant_data = [data for data in self.utility_data if data['utility_name'] == utility_company.name]
-            if len(relevant_data) >= 2:
-                recent_data = relevant_data[-2:]
-                current_consumption = recent_data[-1]['total_consumption'] - recent_data[-2]['total_consumption']
-                utility_demand_predictions[utility_company.name] = current_consumption * self.safety_margin
+            if not relevant_data:
+                continue
+            
+            # if len(relevant_data) >= 2:
+            #     recent_data = relevant_data[-2:]
+            #     current_consumption = recent_data[-1]['total_consumption'] - recent_data[-2]['total_consumption']
+            # else:
+            #     current_consumption = relevant_data[-1]['total_consumption']
+            current_consumption = relevant_data[-1]['total_net_power']
+            
+            utility_demand_predictions[utility_company.name] = current_consumption * self.safety_margin
 
         self.predicted_demand = utility_demand_predictions
-        print(f"Predicted future consumption: {utility_demand_predictions}")
+
 
     def distribute_demand(self):
         """
@@ -78,17 +78,27 @@ class ControlSystem:
             dict: A dictionary with generator names as keys and their respective power demands as values.
         """
         demand_distribution = {}
-        print(f"{self.predicted_demand=}")
 
         for utility_company in self.utility_companies:
-            utility_demand = self.predicted_demand.get(utility_company.name, 0) if self.predicted_demand else -1
+            utility_demand = self.predicted_demand.get(utility_company.name, -1) if self.predicted_demand else -1
             total_nominal_capacity = sum(gen.nominal_capacity for gen in utility_company.generators)
 
-            for generator in utility_company.generators:
-                share = generator.nominal_capacity / total_nominal_capacity
-                demand_distribution[generator.name] = utility_demand * share
-        print(f"{demand_distribution=}")
+            if total_nominal_capacity == 0:
+                continue
+
+            if utility_demand == -1:
+                for generator in utility_company.generators:
+                    demand_distribution[generator.name] = 1.0
+            else:
+                for generator in utility_company.generators:
+                    share = generator.nominal_capacity / total_nominal_capacity
+                    required_power = utility_demand * share
+                    fraction_of_nominal_capacity = min(1.0, max(0.0, required_power / generator.nominal_capacity))
+                    demand_distribution[generator.name] = fraction_of_nominal_capacity
+            
         return demand_distribution
+
+
 
     def get_demand(self, generator_name):
         """

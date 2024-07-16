@@ -26,6 +26,7 @@ class NetAggregator:
         self.data_collected = []
         self.utility_data = {}
         self.commands = {}
+        self.latest_timestep = -1
 
     def collect_data(self, smart_meter, timestep):
         """
@@ -37,13 +38,17 @@ class NetAggregator:
         Returns:
             bool: True if the data was collected successfully, False otherwise.
         """
+        if timestep != self.latest_timestep:
+            self.data_collected = []
+
         data = smart_meter.measure()
         data["timestep"] = timestep
         data["aggregator_name"] = self.name
         if data:
-            self.data_collected = [data]
-            return True
-        return False
+            # self.data_collected = [data]
+            self.data_collected.append(data)
+            
+        self.latest_timestep = timestep
 
     def aggregate_data(self):
         """
@@ -52,12 +57,14 @@ class NetAggregator:
         total_usage = sum(data['total_consumption'] for data in self.data_collected)
         total_production = sum(data['total_production'] for data in self.data_collected)
         total_stored_energy = sum(data['stored_energy'] for data in self.data_collected)
+        total_net_power = sum(data['net_power'] for data in self.data_collected)
         
         self.utility_data = {
             'total_consumption': total_usage,
             'total_production': total_production,
             'total_stored_energy': total_stored_energy,
-            'aggregator_name': self.name
+            'aggregator_name': self.name,
+            'total_net_power': total_net_power,
         }
 
     def send_data_to_utility(self, utility_company):

@@ -52,7 +52,6 @@ class Generator:
 
     def _get_demand(self):
         """Return the demanded power by the system controller"""
-        print("_get_demand called in the generator object")
         return self.controller.get_demand(self.name)
 
     def __str__(self):

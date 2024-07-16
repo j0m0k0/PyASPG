@@ -13,14 +13,13 @@ class WindTurbine(Generator):
         Args:
             wind_speed (float): The wind speed, a factor between 0 and 1.
         """
-        print("Generate Function", self.name)
         self.input = self._get_demand()
-        self.input = abs(self.nominal_capacity * self.input) if self.input < 0 else self.input
+        # self.input = self.nominal_capacity if self.input < 0 else self.input
+        self.input = self.nominal_capacity * self.input
         # self.input = 2000
         nominal_output = self.nominal_capacity
         self.output = min(self.input, nominal_output)
         self.calculate_current()
-        # print(f"{self.output=}")
         return self.output
 
     def __str__(self):

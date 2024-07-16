@@ -69,7 +69,6 @@ class GridSimulator:
 
         def run_simulation_step(env):
             while True:
-                print("\nTimestep:", env.now)
                 log_and_handle(env.now)
 
                 # Update prediction every update_interval timesteps

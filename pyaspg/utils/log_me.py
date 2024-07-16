@@ -2,17 +2,20 @@ import logging
 from functools import wraps
 from datetime import datetime
 
+# Flag to control logging
+LOGGING_ENABLED = False
+
 # Get the current date and time to create a log file name
 current_time = datetime.now().strftime('%m-%d-%Y-%H%M%S')
 log_filename = f'logs/{current_time}.log'
 
-# Configure logging to write to a file without printing to standard output
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Uncomment below to write logs in a file
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[
-    logging.FileHandler(log_filename)
-])
+if LOGGING_ENABLED:
+    # Configure logging to write to a file without printing to standard output
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[
+        logging.FileHandler(log_filename)
+    ])
+else:
+    logging.basicConfig(level=logging.CRITICAL)
 
 def log_me(cls):
     # Iterate through all the attributes of the class
@@ -26,14 +29,16 @@ def log_me(cls):
 def log_decorator(func, class_name):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # Log method entry with arguments
-        logging.info(f"Entering {class_name}.{func.__name__} with args: {args[1:]} and kwargs: {kwargs}")
-        
+        if LOGGING_ENABLED:
+            # Log method entry with arguments
+            logging.info(f"Entering {class_name}.{func.__name__} with args: {args[1:]} and kwargs: {kwargs}")
+
         # Execute the function
         result = func(*args, **kwargs)
         
-        # Log method exit with result
-        logging.info(f"Exiting {class_name}.{func.__name__} with result: {result}\n")
-        
+        if LOGGING_ENABLED:
+            # Log method exit with result
+            logging.info(f"Exiting {class_name}.{func.__name__} with result: {result}\n")
+
         return result
     return wrapper

@@ -60,9 +60,9 @@ class DataLog:
                 ]
             },
             'control_systems': {
-                'header': ['timestep', 'utility_name', 'total_consumption', 'total_production', 'total_stored_energy', 'predicted_demand'],
+                'header': ['timestep', 'utility_name', 'total_net_power', 'total_consumption', 'total_production', 'total_stored_energy', 'predicted_demand'],
                 'data': lambda t, c, conn: [
-                    [t, c.utility_data[-1]['utility_name'], c.utility_data[-1]['total_consumption'], c.utility_data[-1]['total_production'], c.utility_data[-1]['total_stored_energy'], c.predicted_demand[c.utility_data[-1]['utility_name']] if c.predicted_demand is not None else 0.0]
+                    [t, c.utility_data[-1]['utility_name'], c.utility_data[-1]['total_net_power'], c.utility_data[-1]['total_consumption'], c.utility_data[-1]['total_production'], c.utility_data[-1]['total_stored_energy'], c.predicted_demand[c.utility_data[-1]['utility_name']] if c.predicted_demand is not None else 0.0]
                 ]
             },
         }

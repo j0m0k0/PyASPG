@@ -19,7 +19,3 @@ class ProsumerToSmartMeterHandler(BaseHandler):
         # Simulate sending the data to the communication network
         success = target.send_data()
         
-        # if success:
-        #     print(f"Data successfully transmitted from {source.name} at timestep {timestep}.")
-        # else:
-        #     print(f"Data transmission failed for {source.name} at timestep {timestep}.")
