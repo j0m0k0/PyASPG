@@ -81,6 +81,10 @@ class Prosumer:
         self.received_power = received_power
         self.distributor_name = distributor_name
 
+        # Reset net power if not zero, indicating a power outage occurred
+        if self._net_power > 0:
+            self._net_power = 0
+
         
     @property
     def net_power(self):

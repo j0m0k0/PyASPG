@@ -14,7 +14,7 @@ class AggregatorToUtilityHandler(BaseHandler):
             timestep (int): The current timestep in the simulation.
         """
         # Aggregate the data collected by the aggregator
-        source.aggregate_data()
+        source.aggregate_data(timestep)
 
         # Send the aggregated data to the utility company
-        source.send_data_to_utility(target)
+        source.send_data_to_utility(target, timestep)

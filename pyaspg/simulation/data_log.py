@@ -41,16 +41,22 @@ class DataLog:
                     t, c.name, c.input_power, c.output_power, c.efficiency, c.distance,
                 ]
             },
+            # Why I didn't showed the c.net_power in the net_power column?
+            # Because in practice it becomes zero, no matter if we received
+            # enough power or not. Therefore in the reporting it was not 
+            # proper to show it. But in the simulator itself, it becomes 
+            # zero since we reset the net power every timestep for each
+            #  prosumer.
             'prosumers': {
                 'header': ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'net_power', 'stored_energy', 'distributor_name'],
                 'data': lambda t, c, conn: [
-                    t, c.name, c.stored_energy_before, c.net_power_before, c.received_power, c.net_power, c.stored_energy, c.distributor_name
+                    t, c.name, c.stored_energy_before, c.net_power_before, c.received_power, c.net_power_before - c.received_power, c.stored_energy, c.distributor_name
                 ]
             },
             'aggregators': {
-                'header': ['timestep', 'name', 'data_collected'],
+                'header': ['timestep', 'name', 'prosumers', 'data_collected'],
                 'data': lambda t, c, conn: [
-                    t, c.name, c.data_collected[-1]
+                    t, c.name, [i.prosumer.name for i in c.smart_meters], c.data_collected[t]
                 ]
             },
             'utility_companies': {

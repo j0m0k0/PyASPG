@@ -29,6 +29,14 @@ class DistributorToProsumerHandler(BaseHandler):
             source.available_power -= power_to_receive 
             target.received_power = power_to_receive  # Track received power
         else:
+            if source.available_power == 0:
+                # target._net_power = 0
+                
+                # Even there is no power available, we still send a receive 
+                # signal with zero power to the prosumer this makes the
+                #  prosumer to log what was net_power_before, if we don't do 
+                # this, the net_power_before won't be logged for prosumers 
+                # that don't receive any power.
+                target.receive(0, source.name)
             target.received_power = 0  # No power received from distributor
-            target.distributor_name = ""
-        
+            # target.distributor_name = ""

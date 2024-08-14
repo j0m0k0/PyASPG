@@ -42,6 +42,7 @@ class ControlSystem:
         Args:
             data (dict): The data to be received from utility companies.
         """
+
         self.utility_data.append(data)
 
     def predict_demand(self):

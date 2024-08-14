@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 
 import simpy
+from tqdm import tqdm
 from pyaspg.management import ControlSystem, NetAggregator, UtilityCompany
 from pyaspg.communication import SmartMeter, CommunicationNetwork
 from pyaspg.prosume import Prosumer
@@ -59,6 +60,10 @@ class GridSimulator:
         # Create a CSV file for each component type
         self.data_log.initialize_files(components, connections)
 
+        # Initialize the progress bar
+        total_steps = duration // timestep
+        pbar = tqdm(total=total_steps, desc="Running Simulation", unit="timestep", colour="green")
+
         def log_and_handle(t):
             for connection_type, connection_list in connections.items():
                 handler = self.connection_handlers.get(connection_type)
@@ -77,10 +82,16 @@ class GridSimulator:
                     control_system.update_prediction(env.now, update_interval=control_clock)
 
                 yield env.timeout(timestep)
-        
+
+                # Update the progress bar
+                pbar.update(1)
+
         env.process(run_simulation_step(env))
         env.run(until=duration)
         end_time = datetime.now()
+
+        # Close the progress bar
+        pbar.close()
 
         # Close CSV files
         self.data_log.close_files()

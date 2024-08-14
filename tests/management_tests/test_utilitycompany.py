@@ -22,7 +22,8 @@ def test_receive_data(utility_company):
         "total_production": 8000,
         "total_stored_energy": 2000
     }
-    utility_company.receive_data(data_packet)
+    timestep = 1
+    utility_company.receive_data(data_packet, timestep)
     
     assert len(utility_company.received_data) == 1
     assert utility_company.received_data[0] == data_packet

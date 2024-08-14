@@ -22,15 +22,23 @@ class UtilityCompany:
         self.name = name
         self.received_data = []
         self.generators = generators
+        self.last_time_step = -1
 
-    def receive_data(self, data):
+    def receive_data(self, data, timestep):
         """
         Receive aggregated data from a net aggregator.
 
         Args:
             data (dict): The aggregated data to be received.
         """
-        self.received_data = [data]
+        if self.last_time_step != timestep:
+            self.received_data = []
+            
+        self.last_time_step = timestep
+               
+
+        if data not in self.received_data:      
+            self.received_data.append(data)
 
     def __str__(self):
         """Return a string representation of the utility company."""

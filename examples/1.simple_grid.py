@@ -4,10 +4,10 @@ import numpy as np
 import pyaspg as pya
 
 
-DURATION = 1440
+DURATION = 140
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 1500
-NUMBER_OF_AGGREGATORS = 1
+NUMBER_OF_PROSUMERS = 2000
+NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
 
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
@@ -40,19 +40,51 @@ m_to_a = []
 a_to_u = []
 aggregators_list = []
 
-for j in range(NUMBER_OF_AGGREGATORS):
-    _a = pya.NetAggregator(name=f"NA{j+1}")
-    aggregators_list.append(_a)
+# Traditional style
+# for j in range(NUMBER_OF_AGGREGATORS):
+#     _a = pya.NetAggregator(name=f"NA{j+1}")
+#     aggregators_list.append(_a)
+
+# for i in range(NUMBER_OF_PROSUMERS):
+#     _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
+#     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
+#     _selected_a = aggregators_list[random.randint(0, (NUMBER_OF_AGGREGATORS - 1))]
+#     _selected_a.add_smart_meter(_m)
+#     d_to_p.append((distributor, _h))
+#     p_to_m.append((_h, _m))
+#     m_to_a.append((_m, _selected_a))
+#     a_to_u.append((_selected_a, utility_company))
+
+# New Weighted Round-Robin Style
+aggregators_list = [pya.NetAggregator(name=f"NA{i+1}") for i in range(NUMBER_OF_AGGREGATORS)]
+aggregator_weights = [0.05, 0.05, 0.7, 0.05, 0.15]
+smart_meters = []
 
 for i in range(NUMBER_OF_PROSUMERS):
     _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
-    _selected_a = aggregators_list[random.randint(0, (NUMBER_OF_AGGREGATORS - 1))]
+    smart_meters.append(_m)
+
     d_to_p.append((distributor, _h))
     p_to_m.append((_h, _m))
-    m_to_a.append((_m, _selected_a))
-    a_to_u.append((_selected_a, utility_company))
 
+
+pya.RR_distribution.assign_smart_meters(aggregators_list, aggregator_weights, smart_meters)
+
+for aggregator in aggregators_list:
+    if len(aggregator.smart_meters) > 0:
+        a_to_u.append((aggregator, utility_company))
+    
+        for meter in aggregator.smart_meters:
+            m_to_a.append((meter, aggregator))
+    # print("X")
+    # print(f'{aggregator.name}: {[i.prosumer.name for i in aggregator.smart_meters]}')
+
+# print(f"{d_to_p=}")
+# print(f"{p_to_m=}")
+# print(f"{m_to_a=}")
+# print(f"{a_to_u=}")
+# exit(0)
 
 # Define connections between components with parameters
 my_grid = pya.PyASPGCreator()

@@ -2,7 +2,7 @@ import pytest
 from pyaspg.management import NetAggregator, UtilityCompany
 from pyaspg.communication import SmartMeter, CommunicationNetwork
 from pyaspg.prosume import Prosumer
-from pyaspg.generation import WindTurbine, SolarPanel
+from pyaspg.generation import WindTurbine
 from pyaspg.management.control_system import ControlSystem
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def test_net_aggregator_initialization(net_aggregator):
     Test the initialization of the NetAggregator class.
     """
     assert net_aggregator.name == "Data Aggregator 1"
-    assert net_aggregator.data_collected == []
+    assert net_aggregator.data_collected == {}
     assert net_aggregator.utility_data == {}
     assert net_aggregator.commands == {}
 
@@ -46,7 +46,8 @@ def test_collect_data(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_production()
     
     net_aggregator.collect_data(smart_meter, timestep=1)
-    assert len(net_aggregator.data_collected) == 1
+    assert len(net_aggregator.data_collected[1]) == 1  # Ensure data for timestep 1 is stored correctly
+    assert net_aggregator.data_collected[1][0]["timestep"] == 1
 
 def test_aggregate_data(net_aggregator, smart_meter):
     """
@@ -56,11 +57,13 @@ def test_aggregate_data(net_aggregator, smart_meter):
     smart_meter.prosumer.generate_production()
     
     net_aggregator.collect_data(smart_meter, timestep=1)
-    net_aggregator.aggregate_data()
+    net_aggregator.aggregate_data(timestep=1)
     
-    assert net_aggregator.utility_data["total_consumption"] == smart_meter.prosumer.total_consumption
-    assert net_aggregator.utility_data["total_production"] == smart_meter.prosumer.total_production
-    assert net_aggregator.utility_data["total_stored_energy"] == smart_meter.prosumer.stored_energy
+    aggregated_data = net_aggregator.utility_data  # Aggregated data should be stored in utility_data
+    assert aggregated_data["total_consumption"] == smart_meter.prosumer.total_consumption
+    assert aggregated_data["total_production"] == smart_meter.prosumer.total_production
+    assert aggregated_data["total_stored_energy"] == smart_meter.prosumer.stored_energy
+    assert aggregated_data["aggregator_name"] == net_aggregator.name
 
 def test_send_data_to_utility(net_aggregator, smart_meter, generator):
     """
@@ -71,7 +74,7 @@ def test_send_data_to_utility(net_aggregator, smart_meter, generator):
             super().__init__(name, generators)
             self.received_data = []
 
-        def receive_data(self, data):
+        def receive_data(self, data, timestep):
             self.received_data.append(data)
 
     utility_company = MockUtilityCompany(name="Utility Company 1", generators=[generator])
@@ -80,8 +83,8 @@ def test_send_data_to_utility(net_aggregator, smart_meter, generator):
     smart_meter.prosumer.generate_production()
     
     net_aggregator.collect_data(smart_meter, timestep=1)
-    net_aggregator.aggregate_data()
-    net_aggregator.send_data_to_utility(utility_company)
+    net_aggregator.aggregate_data(timestep=1)
+    net_aggregator.send_data_to_utility(utility_company, timestep=1)
     
     assert len(utility_company.received_data) == 1
     assert utility_company.received_data[0] == net_aggregator.utility_data
