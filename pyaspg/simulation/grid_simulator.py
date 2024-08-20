@@ -45,16 +45,27 @@ class GridSimulator:
         }
 
     def run_simulation(self, duration, timestep, control_clock, output_dir):
-        self.data_log = DataLog(output_dir)
+        # Create a unique subdirectory within output_dir
+        timestamp = datetime.now().strftime("%d-%m-%Y")
+        sim_dir_base = os.path.join(output_dir, f"{timestamp}-")
+        sim_dir = sim_dir_base + "1"
+        count = 1
+        while os.path.exists(sim_dir):
+            count += 1
+            sim_dir = sim_dir_base + str(count)
+
+        os.makedirs(sim_dir, exist_ok=True)
+
+        self.data_log = DataLog(sim_dir)
         env = simpy.Environment()
         
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
 
         components = self.creator.components
         connections = self.creator.connections
 
-        self._initialize_simlog(output_dir, components)
+        self._initialize_simlog(sim_dir, components)
         start_time = datetime.now()
 
         # Create a CSV file for each component type
@@ -96,7 +107,7 @@ class GridSimulator:
         # Close CSV files
         self.data_log.close_files()
 
-        self._finalize_simlog(output_dir, start_time, end_time, components)
+        self._finalize_simlog(sim_dir, start_time, end_time, components)
 
     def _initialize_simlog(self, output_dir, components):
         self.simlog_path = os.path.join(output_dir, 'simlog.txt')
