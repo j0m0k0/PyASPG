@@ -12,7 +12,7 @@ class GeneratorToTransmitterHandler(BaseHandler):
         super().__init__()
 
         self.transmitter_groups = {}
-    def handle_connection(self, source, target, params, timestep):
+    def handle_connection(self, source, target, params, timestep, replay_mode):
     
         if isinstance(source, WindTurbine):
             output_power = source.generate()

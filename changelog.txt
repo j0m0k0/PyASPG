@@ -1,0 +1,17 @@
+Version 0.4
+- create separate folder for each simulation result
+- support for loading a simulation and re-run using ideal predictor (replay mode)
+- ideal predictor added
+
+Version 0.3
+- Support for multiple net aggregators 
+- Support for weighting net aggregators using weighted RoundRobin
+
+Version 0.2
+- Cardinality of the connections introduced
+- Jupyter notebook example added
+
+Version 0.1
+- Various components introduced for communication, distribution, generation, management and prosume of the smart grids
+- Grid creation and simulation
+- Test suite using Pytest

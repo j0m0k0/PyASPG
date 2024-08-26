@@ -24,5 +24,5 @@ class BaseHandler(ABC):
         self.relation_type = relation_type
 
     @abstractmethod
-    def handle_connection(self, source, target, parameters, timestep):
+    def handle_connection(self, source, target, parameters, timestep, replay_mode):
         pass

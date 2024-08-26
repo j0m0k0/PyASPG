@@ -4,18 +4,18 @@ import numpy as np
 import pyaspg as pya
 
 
-DURATION = 144
+DURATION = 30
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 30
+NUMBER_OF_PROSUMERS = 10000
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-
+aggregator_weights = [0.02, 0.08, 0.7, 0.05, 0.15]
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
 
-wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=5000000, voltage=25000, controller=control_system)
-wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=8000000, voltage=25000, controller=control_system)
-wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=4000000, voltage=25000, controller=control_system)
-wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=1000000, voltage=25000, controller=control_system)
+wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000000, voltage=25000, controller=control_system)
+wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=80000000, voltage=25000, controller=control_system)
+wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=40000000, voltage=25000, controller=control_system)
+wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=10000000, voltage=25000, controller=control_system)
 
 transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4])
 # transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
@@ -57,7 +57,7 @@ aggregators_list = []
 
 # New Weighted Round-Robin Style
 aggregators_list = [pya.NetAggregator(name=f"NA{i+1}") for i in range(NUMBER_OF_AGGREGATORS)]
-aggregator_weights = [0.05, 0.05, 0.7, 0.05, 0.15]
+
 smart_meters = []
 
 for i in range(NUMBER_OF_PROSUMERS):
@@ -107,4 +107,4 @@ my_grid.define_connections(
 
 # Run the simulation
 simulator = pya.GridSimulator(my_grid)
-simulator.run_simulation(duration=DURATION, timestep=TIMESTEP, control_clock=CONTROL_CLOCK, output_dir='simulation_results')
+simulator.run_simulation(duration=DURATION, timestep=TIMESTEP, control_clock=CONTROL_CLOCK, output_dir='simulation_results', replay_mode=False)

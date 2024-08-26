@@ -4,7 +4,7 @@ from pyaspg.utils import log_me
 
 @log_me
 class UtilityToControlHandler(BaseHandler):
-    def handle_connection(self, source, target, params, timestep):
+    def handle_connection(self, source, target, params, timestep, replay_mode):
         """
         Handle the connection between a utility company and a control system.
 

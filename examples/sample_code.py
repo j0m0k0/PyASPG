@@ -1,28 +1,21 @@
 import random
 import numpy as np
-import pandas as pd
 
 import pyaspg as pya
 
 
-DURATION = 30
+DURATION = 144
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 10000
+NUMBER_OF_PROSUMERS = 30
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-aggregator_weights = [0.02, 0.08, 0.7, 0.05, 0.15]
-# Replay Mode new variables
-REPLAY_PATH = './simulation_results/25-08-2024-1/'
-prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
-aggregators_df = pd.read_csv(REPLAY_PATH + "aggregators.csv")
-control_system_df = pd.read_csv(REPLAY_PATH + "control_systems.csv")
 
-control_system = pya.ControlSystem(name="CS1", safety_margin=1.0, cs_frame=control_system_df)
+control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
 
-wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000000, voltage=25000, controller=control_system)
-wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=80000000, voltage=25000, controller=control_system)
-wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=40000000, voltage=25000, controller=control_system)
-wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=10000000, voltage=25000, controller=control_system)
+wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=5000000, voltage=25000, controller=control_system)
+wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=8000000, voltage=25000, controller=control_system)
+wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=4000000, voltage=25000, controller=control_system)
+wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=1000000, voltage=25000, controller=control_system)
 
 transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4])
 # transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
@@ -47,32 +40,22 @@ m_to_a = []
 a_to_u = []
 aggregators_list = []
 
+
 # New Weighted Round-Robin Style
 aggregators_list = [pya.NetAggregator(name=f"NA{i+1}") for i in range(NUMBER_OF_AGGREGATORS)]
+aggregator_weights = [0.05, 0.05, 0.7, 0.05, 0.15]
 smart_meters = []
 
-for i, row in prosumers_df.iterrows():
-    _h = pya.Prosumer(
-        name=row['name'],
-        replay_mode=True,
-        prosumer_type=row['prosumer_type'],
-        storage_capacity=row['storage_capacity'],
-        replay_frame=prosumers_df[prosumers_df["name"] == row["name"]],
-        distributor_name=row['distributor_name']
-        )
-
+for i in range(NUMBER_OF_PROSUMERS):
+    _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
     smart_meters.append(_m)
-
-    if i == NUMBER_OF_PROSUMERS:
-        break
 
     d_to_p.append((distributor, _h))
     p_to_m.append((_h, _m))
 
 
-pya.RR_distribution.load_smart_meter_assignments(aggregators_list, smart_meters, aggregators_df=aggregators_df[aggregators_df['timestep'] == 0])
-
+pya.RR_distribution.assign_smart_meters(aggregators_list, aggregator_weights, smart_meters)
 
 for aggregator in aggregators_list:
     if len(aggregator.smart_meters) > 0:
@@ -80,6 +63,14 @@ for aggregator in aggregators_list:
     
         for meter in aggregator.smart_meters:
             m_to_a.append((meter, aggregator))
+    # print("X")
+    # print(f'{aggregator.name}: {[i.prosumer.name for i in aggregator.smart_meters]}')
+
+# print(f"{d_to_p=}")
+# print(f"{p_to_m=}")
+# print(f"{m_to_a=}")
+# print(f"{a_to_u=}")
+# exit(0)
 
 # Define connections between components with parameters
 my_grid = pya.PyASPGCreator()
@@ -102,4 +93,4 @@ my_grid.define_connections(
 
 # Run the simulation
 simulator = pya.GridSimulator(my_grid)
-simulator.run_simulation(duration=DURATION, timestep=TIMESTEP, control_clock=CONTROL_CLOCK, output_dir='simulation_results', replay_mode=True)
+simulator.run_simulation(duration=DURATION, timestep=TIMESTEP, control_clock=CONTROL_CLOCK, output_dir='simulation_results')

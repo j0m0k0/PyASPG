@@ -48,9 +48,9 @@ class DataLog:
             # zero since we reset the net power every timestep for each
             #  prosumer.
             'prosumers': {
-                'header': ['timestep', 'name', 'stored_energy_before', 'net_power_before', 'received_power', 'net_power', 'stored_energy', 'distributor_name'],
+                'header': ['timestep', 'name', 'net_power_before', 'received_power', 'net_power', 'stored_energy_before', 'stored_energy', 'storage_capacity', 'distributor_name', 'prosumer_type'],
                 'data': lambda t, c, conn: [
-                    t, c.name, c.stored_energy_before, c.net_power_before, c.received_power, c.net_power_before - c.received_power, c.stored_energy, c.distributor_name
+                    t, c.name, c.net_power_before, c.received_power, c.net_power_before - c.received_power, c.stored_energy_before, c.stored_energy, c.storage_capacity, c.distributor_name, c.prosumer_type
                 ]
             },
             'aggregators': {

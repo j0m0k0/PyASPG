@@ -28,10 +28,38 @@ from .connection_handler import (
 
 @log_me
 class GridSimulator:
+    """
+    The GridSimulator class is responsible for managing and running power grid simulations. It coordinates the interactions between various components
+    of the grid such as generators, transmitters, substations, distributors, prosumers, smart meters, and control systems. The simulation can either
+    run in a standard mode or a replay mode where it uses pre-recorded data to replay a previous simulation.
+
+    Attributes:
+        creator (PyASPGCreator): An instance of the PyASPGCreator class, responsible for setting up the grid components and their connections.
+        data_log (DataLog): An instance of the DataLog class for recording simulation data into CSV files.
+        simlog_path (str): The path to the simulation log file.
+        replay_mode (bool): A flag indicating whether the simulation is running in replay mode, where it uses pre-recorded data.
+        connection_handlers (dict): A dictionary mapping connection types to their corresponding handler classes, responsible for managing interactions
+                                    between different grid components.
+
+    Methods:
+        run_simulation(duration, timestep, control_clock, output_dir, replay_mode=False):
+            Runs the simulation for the specified duration and timestep, with an option to run in replay mode. Creates a unique subdirectory within
+            the specified output directory to store the simulation results.
+
+        _initialize_simlog(output_dir, components):
+            Initializes the simulation log file, recording the start time and component counts.
+
+        _finalize_simlog(output_dir, start_time, end_time, components):
+            Finalizes the simulation log file, recording the end time and total duration.
+
+        _get_control_system(components):
+            Retrieves the control system component from the list of grid components.
+    """
     def __init__(self, creator: PyASPGCreator):
         self.creator = creator
         self.data_log = None
         self.simlog_path = None
+        self.replay_mode = False
         self.connection_handlers = {
             'generator_to_transmitter': GeneratorToTransmitterHandler(),
             'transmitter_to_substation': TransmitterToSubstationHandler(),
@@ -44,7 +72,9 @@ class GridSimulator:
             # Add other connection handlers here...
         }
 
-    def run_simulation(self, duration, timestep, control_clock, output_dir):
+    def run_simulation(self, duration, timestep, control_clock, output_dir, replay_mode):
+        self.replay_mode = replay_mode  # Set the replay mode
+
         # Create a unique subdirectory within output_dir
         timestamp = datetime.now().strftime("%d-%m-%Y")
         sim_dir_base = os.path.join(output_dir, f"{timestamp}-")
@@ -73,14 +103,15 @@ class GridSimulator:
 
         # Initialize the progress bar
         total_steps = duration // timestep
-        pbar = tqdm(total=total_steps, desc="Running Simulation", unit="timestep", colour="green")
+
+        pbar = tqdm(total=total_steps, desc="Replaying Simulation" if self.replay_mode else "Running Simulation", unit="timestep", colour="green", bar_format = "{desc}: {percentage:.1f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]")
 
         def log_and_handle(t):
             for connection_type, connection_list in connections.items():
                 handler = self.connection_handlers.get(connection_type)
                 if handler:
                     for source, target, params in connection_list:
-                        handler.handle_connection(source, target, params, t // timestep)
+                        handler.handle_connection(source, target, params, t // timestep, self.replay_mode)
             self.data_log.log_data(t, components, connections)
 
         def run_simulation_step(env):
@@ -90,7 +121,10 @@ class GridSimulator:
                 # Update prediction every update_interval timesteps
                 control_system = self._get_control_system(components)
                 if control_system:
-                    control_system.update_prediction(env.now, update_interval=control_clock)
+                    if replay_mode:
+                        control_system.replay_update_prediction(env.now, update_interval=control_clock, predictor='ideal')
+                    else:
+                        control_system.update_prediction(env.now, update_interval=control_clock)
 
                 yield env.timeout(timestep)
 
@@ -99,6 +133,12 @@ class GridSimulator:
 
         env.process(run_simulation_step(env))
         env.run(until=duration)
+
+        # Manually ensure the progress bar reaches 100%
+        if pbar.n < pbar.total:
+            pbar.n = pbar.total
+            pbar.refresh()
+
         end_time = datetime.now()
 
         # Close the progress bar

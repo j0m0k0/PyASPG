@@ -3,7 +3,7 @@ from pyaspg.utils import log_me
 
 @log_me
 class ProsumerToSmartMeterHandler(BaseHandler):
-    def handle_connection(self, source, target, params, timestep):
+    def handle_connection(self, source, target, params, timestep, replay_mode):
         """
         Handle the connection between a prosumer and a smart meter.
 
@@ -13,8 +13,9 @@ class ProsumerToSmartMeterHandler(BaseHandler):
             params (dict): Additional parameters for the connection.
             timestep (int): The current timestep in the simulation.
         """
+
         # Measure the prosumer's electricity usage, production, and net power
-        measured_data = target.measure()
+        # measured_data = target.measure()
         
         # Simulate sending the data to the communication network
         success = target.send_data()

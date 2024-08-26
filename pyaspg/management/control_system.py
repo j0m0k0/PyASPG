@@ -12,7 +12,7 @@ class ControlSystem:
         safety_margin (float): The safety margin for power generation to prevent blackouts.
     """
 
-    def __init__(self, name, safety_margin=1.2):
+    def __init__(self, name, safety_margin=1.2, cs_frame=None):
         """
         Initialize a ControlSystem instance.
 
@@ -25,6 +25,7 @@ class ControlSystem:
         self.utility_data = []
         self.safety_margin = safety_margin
         self.predicted_demand = None
+        self.cs_frame = cs_frame
 
     def register_utility_company(self, utility_company):
         """
@@ -125,6 +126,39 @@ class ControlSystem:
         """
         if timestep % update_interval == 0:
             self.predict_demand()
+
+    def ideal_predictor(self, timestep):
+        utility_demand_predictions = {}
+        for utility_company in self.utility_companies:
+            # Get the total_net_power for the next timestep and utility company
+            demand = self.cs_frame.loc[
+                (self.cs_frame['timestep'] == timestep + 1) & (self.cs_frame['utility_name'] == utility_company.name),
+                'total_net_power'
+            ].values
+
+            if len(demand) > 0:
+                # Ideal prediction assumes perfect knowledge of future demand
+                utility_demand_predictions[utility_company.name] = demand[0]
+
+        self.predicted_demand = utility_demand_predictions
+
+
+    def replay_update_prediction(self, timestep, update_interval, predictor='ideal'):
+        """
+        Update the demand prediction based on replay data for the specified timestep.
+
+        Args:
+            timestep (int): The current timestep of the simulation.
+            predictor (str): The predictor type. Default is 'ideal'.
+        """
+        if predictor != 'ideal':
+            raise NotImplementedError("Only 'ideal' predictor is currently implemented.")
+
+        if self.cs_frame is None:
+            raise ValueError("No replay data available for replay mode.")
+
+        if timestep % update_interval == 0:
+            self.ideal_predictor(timestep)
 
     def __str__(self):
         """Return a string representation of the control system."""

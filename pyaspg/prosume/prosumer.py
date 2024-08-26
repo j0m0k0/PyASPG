@@ -17,7 +17,12 @@ class Prosumer:
         production_pattern (tuple): A tuple representing the mean and standard deviation of the production pattern.
     """
 
-    def __init__(self, name, prosumer_type="House", storage_capacity=0, consumption_file=None, bias=0, production_pattern=(500, 100)):
+    def __init__(
+        self, name, replay_mode=False,
+        replay_frame=None, distributor_name=None,
+        prosumer_type="House", storage_capacity=0,
+        consumption_file=None, bias=0,
+        production_pattern=(500, 100)):
         """
         Initialize a Prosumer instance.
 
@@ -43,6 +48,11 @@ class Prosumer:
         self.stored_energy_before = 0
         self.last_generated_consumption = 0
         self.last_generated_production = 0
+
+        self.replay_mode = replay_mode
+        self.replay_frame = replay_frame
+        self.distributor_name = distributor_name
+
 
     def _update_net_power(self, amount, is_consumption=False, is_production=False):
         if is_consumption:
@@ -174,3 +184,42 @@ class Prosumer:
         """Return a string representation of the prosumer."""
         return (f"{self.name} (Consumption: {self.total_consumption} W, Production: {self.total_production} W, "
                 f"Stored Energy: {self.stored_energy} W, Storage Capacity: {self.storage_capacity})")
+
+    # Replay mode methods
+    def replay_generate_consumption(self, timestep):
+        """
+        Generate consumption using data from the replay frame.
+        
+        Args:
+            timestep (int): The current timestep in the simulation.
+
+        Returns:
+            float: The generated power consumption in watts (W) from replay data.
+        """
+        # Read consumption based on 'net_power_before' for the current timestep
+        consumption = self.replay_frame.loc[
+            (self.replay_frame['timestep'] == timestep) & (self.replay_frame['name'] == self.name),
+            'net_power_before'
+        ].values[0]
+        self.last_generated_consumption = consumption
+        self.consume(consumption)
+        return consumption
+
+    def replay_generate_production(self, timestep):
+            """
+            Generate production using data from the replay frame.
+            
+            Args:
+                timestep (int): The current timestep in the simulation.
+
+            Returns:
+                float: The generated power production in watts (W) from replay data.
+            """
+            # Read production based on 'stored_energy_before' for the current timestep
+            production = self.replay_frame.loc[
+                (self.replay_frame['timestep'] == timestep) & (self.replay_frame['name'] == self.name),
+                'stored_energy_before'
+            ].values[0]
+            self.last_generated_production = production
+            self.produce(production)
+            return production
