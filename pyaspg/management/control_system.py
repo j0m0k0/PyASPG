@@ -131,10 +131,10 @@ class ControlSystem:
         utility_demand_predictions = {}
         for utility_company in self.utility_companies:
             # Get the total_net_power for the next timestep and utility company
-            demand = self.cs_frame.loc[
+            demand = (self.cs_frame.loc[
                 (self.cs_frame['timestep'] == timestep + 1) & (self.cs_frame['utility_name'] == utility_company.name),
                 'total_net_power'
-            ].values
+            ].values) * self.safety_margin
 
             if len(demand) > 0:
                 # Ideal prediction assumes perfect knowledge of future demand

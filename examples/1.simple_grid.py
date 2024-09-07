@@ -1,3 +1,4 @@
+import math
 import random
 import numpy as np
 
@@ -6,23 +7,26 @@ import pyaspg as pya
 
 DURATION = 30
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 10000
+NUMBER_OF_PROSUMERS = 100
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
 aggregator_weights = [0.02, 0.08, 0.7, 0.05, 0.15]
+distributor_weights = [0.75, 0.25]
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
 
-wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000000, voltage=25000, controller=control_system)
-wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=80000000, voltage=25000, controller=control_system)
-wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=40000000, voltage=25000, controller=control_system)
-wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=10000000, voltage=25000, controller=control_system)
+wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000, voltage=25000, controller=control_system)
+wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=800000, voltage=25000, controller=control_system)
+wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=400000, voltage=25000, controller=control_system)
+wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=100000, voltage=25000, controller=control_system)
 
-transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4])
-# transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
+transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine4])
+transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
 
 substation = pya.Substation(name="S1", input_voltage=25000, output_voltage=10000, efficiency=1.0)
+substation2 = pya.Substation(name="S2", input_voltage=25000, output_voltage=10000, efficiency=1.0)
 
 distributor = pya.Distributor(name="D1", efficiency=1.0, distance=10)
+distributor2 = pya.Distributor(name="D2", efficiency=1.0, distance=10)
 
 communication_network = pya.CommunicationNetwork(name="SGN", reliability=1.0)
 
@@ -33,6 +37,8 @@ control_system.register_utility_company(utility_company)
 # utility_company3 = pya.UtilityCompany(name="UC3")
 
 
+DISTRIBUTORS = [distributor, distributor2]
+
 wind_speed = np.random.rand(DURATION // TIMESTEP)
 d_to_p = []
 p_to_m = []
@@ -40,31 +46,40 @@ m_to_a = []
 a_to_u = []
 aggregators_list = []
 
-# Traditional style
-# for j in range(NUMBER_OF_AGGREGATORS):
-#     _a = pya.NetAggregator(name=f"NA{j+1}")
-#     aggregators_list.append(_a)
-
-# for i in range(NUMBER_OF_PROSUMERS):
-#     _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
-#     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
-#     _selected_a = aggregators_list[random.randint(0, (NUMBER_OF_AGGREGATORS - 1))]
-#     _selected_a.add_smart_meter(_m)
-#     d_to_p.append((distributor, _h))
-#     p_to_m.append((_h, _m))
-#     m_to_a.append((_m, _selected_a))
-#     a_to_u.append((_selected_a, utility_company))
-
 # New Weighted Round-Robin Style
 aggregators_list = [pya.NetAggregator(name=f"NA{i+1}") for i in range(NUMBER_OF_AGGREGATORS)]
 
 smart_meters = []
 
+# Calculate the exact number of prosumers for each distributor
+num_prosumers = NUMBER_OF_PROSUMERS
+num_prosumers_per_distributor = [math.floor(weight * num_prosumers) for weight in distributor_weights]
+
+# Ensure the sum matches exactly by adjusting the last one
+num_prosumers_per_distributor[-1] = num_prosumers - sum(num_prosumers_per_distributor[:-1])
+
+distributor_assignments = []
+for i, num in enumerate(num_prosumers_per_distributor):
+    distributor_assignments.extend([DISTRIBUTORS[i]] * num)
+
+# Shuffle the distributor_assignments list to distribute prosumers randomly but exactly
+random.shuffle(distributor_assignments)
+
 for i in range(NUMBER_OF_PROSUMERS):
-    _h = pya.Prosumer(name=f"H{i+1}", prosumer_type="House", storage_capacity=0, consumption_file="consumption_patterns/2006-12-16.csv", bias=(i+1)*5, production_pattern=(0, 0))
+    _h = pya.Prosumer(
+        name=f"H{i+1}",
+        prosumer_type="House",
+        storage_capacity=0,
+        consumption_file="consumption_patterns/2006-12-16.csv",
+        bias=(i+1)*5,
+        production_pattern=(0, 0)
+    )
     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
     smart_meters.append(_m)
 
+    # NEW: assign prosumers to distributors exactly based on the weight distribution
+    distributor = distributor_assignments[i]
+    
     d_to_p.append((distributor, _h))
     p_to_m.append((_h, _m))
 
@@ -77,27 +92,19 @@ for aggregator in aggregators_list:
     
         for meter in aggregator.smart_meters:
             m_to_a.append((meter, aggregator))
-    # print("X")
-    # print(f'{aggregator.name}: {[i.prosumer.name for i in aggregator.smart_meters]}')
-
-# print(f"{d_to_p=}")
-# print(f"{p_to_m=}")
-# print(f"{m_to_a=}")
-# print(f"{a_to_u=}")
-# exit(0)
 
 # Define connections between components with parameters
 my_grid = pya.PyASPGCreator()
 my_grid.define_connections(
     generator_to_transmitter=[
-        (wind_turbine, transmitter),
-        # (wind_turbine3, transmitter2),
-        (wind_turbine2, transmitter),
+        (wind_turbine, transmitter2),
+        (wind_turbine2, transmitter2),
         (wind_turbine3, transmitter),
+        # (wind_turbine3, transmitter),
         (wind_turbine4, transmitter),
     ],
-    transmitter_to_substation=[(transmitter, substation)],
-    substation_to_distributor=[(substation, distributor)],
+    transmitter_to_substation=[(transmitter, substation), (transmitter2, substation2)],
+    substation_to_distributor=[(substation, distributor), (substation2, distributor2)],
     distributor_to_prosumer=d_to_p,
     prosumer_to_smart_meter=p_to_m,
     smart_meter_to_aggregator=m_to_a,

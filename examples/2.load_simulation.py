@@ -7,17 +7,17 @@ import pyaspg as pya
 
 DURATION = 30
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 10000
+NUMBER_OF_PROSUMERS = 100
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
 aggregator_weights = [0.02, 0.08, 0.7, 0.05, 0.15]
 # Replay Mode new variables
-REPLAY_PATH = './simulation_results/25-08-2024-1/'
+REPLAY_PATH = './simulation_results/01-09-2024-1/'
 prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
 aggregators_df = pd.read_csv(REPLAY_PATH + "aggregators.csv")
 control_system_df = pd.read_csv(REPLAY_PATH + "control_systems.csv")
 
-control_system = pya.ControlSystem(name="CS1", safety_margin=1.0, cs_frame=control_system_df)
+control_system = pya.ControlSystem(name="CS1", safety_margin=1.1, cs_frame=control_system_df)
 
 wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000000, voltage=25000, controller=control_system)
 wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=80000000, voltage=25000, controller=control_system)
@@ -77,7 +77,7 @@ pya.RR_distribution.load_smart_meter_assignments(aggregators_list, smart_meters,
 for aggregator in aggregators_list:
     if len(aggregator.smart_meters) > 0:
         a_to_u.append((aggregator, utility_company))
-    
+
         for meter in aggregator.smart_meters:
             m_to_a.append((meter, aggregator))
 
