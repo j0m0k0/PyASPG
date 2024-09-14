@@ -27,6 +27,8 @@ class ControlSystem:
         self.predicted_demand = None
         self.cs_frame = cs_frame
 
+        # print("Safety margin is", self.safety_margin)
+
     def register_utility_company(self, utility_company):
         """
         Add a utility company to the list of utility companies under the control of this control system.
@@ -139,7 +141,7 @@ class ControlSystem:
             if len(demand) > 0:
                 # Ideal prediction assumes perfect knowledge of future demand
                 utility_demand_predictions[utility_company.name] = demand[0]
-
+        print(f"{timestep=} {self.predicted_demand=}")
         self.predicted_demand = utility_demand_predictions
 
 

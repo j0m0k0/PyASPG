@@ -22,7 +22,7 @@ class Prosumer:
         replay_frame=None, distributor_name=None,
         prosumer_type="House", storage_capacity=0,
         consumption_file=None, bias=0,
-        production_pattern=(500, 100)):
+        production_pattern=(0, 0)):
         """
         Initialize a Prosumer instance.
 
@@ -36,7 +36,7 @@ class Prosumer:
         self.name = name
         self.total_consumption = 0
         self.total_production = 0
-        self.storage_capacity = storage_capacity
+        self._storage_capacity = storage_capacity  # Make storage_capacity private
         self.stored_energy = 0
         self.received_commands = []
         self._net_power = 0
@@ -54,6 +54,13 @@ class Prosumer:
         self.distributor_name = distributor_name
 
 
+    @property
+    def storage_capacity(self):
+        """
+        Read-only property for storage capacity to prevent modifications after initialization.
+        """
+        return self._storage_capacity
+
     def _update_net_power(self, amount, is_consumption=False, is_production=False):
         if is_consumption:
             # First use stored energy
@@ -66,9 +73,11 @@ class Prosumer:
             net_before_production = self._net_power
             self._net_power -= min(amount, self._net_power)
             remaining_amount = amount - (net_before_production - self._net_power)
-            stored_energy = min(remaining_amount, self.storage_capacity - self.stored_energy)
-            self.stored_energy += stored_energy
-            self._net_power -= (remaining_amount - stored_energy)
+
+            if self.storage_capacity > 0:
+                stored_energy = min(remaining_amount, self.storage_capacity - self.stored_energy)
+                self.stored_energy += stored_energy
+                self._net_power -= (remaining_amount - stored_energy)
 
     def receive(self, power, distributor_name):
         """
@@ -85,7 +94,8 @@ class Prosumer:
         needed_power = self._net_power
         received_power = min(needed_power, power)
         self._net_power -= received_power
-        self.stored_energy = min(self.stored_energy + (power - received_power), self.storage_capacity)
+        if self.storage_capacity > 0:
+            self.stored_energy = min(self.stored_energy + (power - received_power), self.storage_capacity)
 
         # Track received power and distributor name
         self.received_power = received_power
@@ -116,6 +126,7 @@ class Prosumer:
         if self.consumption_pattern_parser:
             consumption = next(self.consumption_pattern_parser)
             self.last_generated_consumption = consumption
+            print("consumption value to send to consume method", consumption)
             self.consume(consumption)
             return consumption
         else:
@@ -140,6 +151,8 @@ class Prosumer:
         Args:
             power (float): The power to be consumed in watts (W).
         """
+        if power < 0:
+            print("Power value", power)
         self.total_consumption += power
         # First use stored energy
         used_from_storage = min(power, self.stored_energy)
@@ -162,7 +175,7 @@ class Prosumer:
             self._net_power -= reduction
             power -= reduction
         # Store any remaining power if possible
-        if power > 0:
+        if power > 0 and self.storage_capacity > 0:
             storage_space = self.storage_capacity - self.stored_energy
             stored = min(storage_space, power)
             self.stored_energy += stored
@@ -197,13 +210,33 @@ class Prosumer:
             float: The generated power consumption in watts (W) from replay data.
         """
         # Read consumption based on 'net_power_before' for the current timestep
-        consumption = self.replay_frame.loc[
-            (self.replay_frame['timestep'] == timestep) & (self.replay_frame['name'] == self.name),
-            'net_power_before'
-        ].values[0]
-        self.last_generated_consumption = consumption
-        self.consume(consumption)
-        return consumption
+        try:
+            # Read consumption based on 'net_power_before' for the current timestep
+            filtered_data = self.replay_frame.loc[
+                (self.replay_frame['timestep'] == timestep) & (self.replay_frame['name'] == self.name),
+                'net_power_before'
+            ]
+
+            # Check if the result is empty
+            if filtered_data.empty:
+                raise ValueError(f"No data available for timestep {timestep} and name {self.name}")
+
+            # Access the consumption value safely
+            consumption = filtered_data.values[0]
+            
+            # Save and consume the generated consumption
+            self.last_generated_consumption = consumption
+            self.consume(consumption)
+            return consumption
+
+        except IndexError:
+            # Handle cases where there are no matching records
+            raise ValueError(f"No valid consumption data found for timestep {timestep} for prosumer {self.name}")
+        
+        except Exception as e:
+            # Handle any other unexpected errors
+            print(f"Error generating consumption at timestep {timestep}: {e}")
+            raise
 
     def replay_generate_production(self, timestep):
             """

@@ -37,6 +37,8 @@ class Distributor:
         Args:
             input_power (float): The input power received from the generation sources in watts (W).
         """
+        # if input_power == 0:
+        #     print(f"{input_power=}")
         self.input_power = input_power
         self.available_power = self.distribute()  # Update available power
 

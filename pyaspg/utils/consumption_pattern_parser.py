@@ -9,6 +9,7 @@ class ConsumptionPatternParser:
     def __init__(self, file_path, bias=0):
         """
         Initialize the ConsumptionPatternParser instance.
+        Consumption values cannot be negative at the end.
 
         Args:
             file_path (str): The path to the CSV file containing consumption data.
@@ -38,10 +39,17 @@ class ConsumptionPatternParser:
             self.timestep = 0  # Reset to the beginning of the data
 
         row = self.consumption_data.iloc[self.timestep]
-        total_consumption = (row['Global_active_power'] * 1000 +
+        # abs function applied to be sure that we won't have a negative value
+        #  at the end for consumption
+        total_consumption = abs(
+            (row['Global_active_power'] * 1000 +
                              row['Sub_metering_1'] +
                              row['Sub_metering_2'] +
                              row['Sub_metering_3'] +
                              self.bias)
+        )
+        if total_consumption < 0:
+            print("Bad Data BIAS", self.bias, row)
+        
         self.timestep += 1
         return total_consumption

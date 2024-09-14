@@ -1,3 +1,12 @@
+Version 1.0 [TODO] [Public Release]
+- config file support for making smart power grid simulations 
+- GUI for PyASPG
+- Write more tests
+- Have documentation
+
+Version 0.5
+- make loading a simulation easier
+
 Version 0.4
 - create separate folder for each simulation result
 - support for loading a simulation and re-run using ideal predictor (replay mode)

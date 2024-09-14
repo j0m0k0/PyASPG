@@ -31,6 +31,7 @@ class UtilityCompany:
         Args:
             data (dict): The aggregated data to be received.
         """
+        # print(timestep, "data received at utility company:", data)
         if self.last_time_step != timestep:
             self.received_data = []
             

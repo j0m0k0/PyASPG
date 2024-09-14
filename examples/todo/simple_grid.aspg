@@ -1,0 +1,72 @@
+---
+# Simulation configuration
+- simulation_setup:
+  - duration: 30
+  - timestep: 1
+  - number_of_prosumers: 100
+  - number_of_aggregators: 5
+  - control_clock: 1
+  - aggregator_weights: [0.02, 0.08, 0.7, 0.05, 0.15]
+  - distributor_weights: [0.75, 0.25]
+  - bias: 400
+  - sign: [-1, 1]
+  - replay_mode: false
+
+# Defining different components of the grid and their connections
+- grid_components:  
+  - control_system: 
+    - name: "CS1"
+    - safety_margin: 1.0
+  - generator:
+    - name: "G1"
+    - nominal_capacity: 500000
+    - voltage: 25000 
+    - controller: "CS1"
+  - generator:
+    - name: "G2"
+    - nominal_capacity: 800000
+    - voltage: 25000 
+    - controller: "CS1"
+  - generator:
+    - name: "G3"
+    - nominal_capacity: 400000
+    - voltage: 25000 
+    - controller: "CS1"
+  - generator:
+    - name: "G4"
+    - nominal_capacity: 1000000
+    - voltage: 25000 
+    - controller: "CS1"
+  - transmitter:
+    - name: "T1" 
+    - efficiency: 1.0
+    - distance: 100
+    - generators: ["G1", "G2", "G4"]
+  - transmitter:
+    - name: "T2" 
+    - efficiency: 1.0
+    - distance: 100
+    - generators: ["G3"]
+  - substation:
+    - name: "S1"
+    - input_voltage: 25000
+    - output_voltage: 10000
+    - efficiency: 1.0
+  - substation:
+    - name: "S2"
+    - input_voltage: 25000
+    - output_voltage: 10000
+    - efficiency: 1.0
+  - distributor:
+    - name: "D1"
+    - efficiency: 1.0
+    - distance: 10
+  - communication_network:
+    - name: "SGN"
+    - reliability: 1.0
+  - utility_company:
+    - name: "UC1"
+    - generators: ["G1", "G2", "G3", "G4"]
+    - register_utility_company: "CS1"
+  - prosumers:
+    - consumption_file: "consumption_patterns/2006-12-16.csv"

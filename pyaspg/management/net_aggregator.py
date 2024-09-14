@@ -15,7 +15,7 @@ class NetAggregator:
         commands (dict): Commands to be sent to prosumers.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, compromised=False, attack_method=None):
         """
         Initialize a NetAggregator instance.
 
@@ -28,6 +28,8 @@ class NetAggregator:
         self.commands = {}
         self.latest_timestep = -1
         self.smart_meters = []
+        self.compromised = compromised
+        self.attack_method = attack_method
 
     def add_smart_meter(self, smart_meter):
         """
@@ -46,14 +48,16 @@ class NetAggregator:
             bool: True if the data was collected successfully, False otherwise.
         """
         data = smart_meter.measure()
-
         if timestep != self.latest_timestep:
             self.data_collected[timestep] = []
             self.latest_timestep = timestep
         
         
         data["timestep"] = timestep
-        data["aggregator_name"] = self.name        
+        data["aggregator_name"] = self.name
+        if self.compromised and self.attack_method is not None:
+            # print(timestep, data["prosumer"], data["net_power"], self.attack_method(data["net_power"]))
+            data["net_power"] = self.attack_method(data["net_power"])
         self.data_collected[timestep].append(data)
 
 

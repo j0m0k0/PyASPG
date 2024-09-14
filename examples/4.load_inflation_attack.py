@@ -5,28 +5,30 @@ import pandas as pd
 import pyaspg as pya
 
 
-DURATION = 30
+DURATION = 120
 TIMESTEP = 1
-NUMBER_OF_PROSUMERS = 100
+NUMBER_OF_PROSUMERS = 200
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-aggregator_weights = [0.02, 0.08, 0.7, 0.05, 0.15]
-distributor_weights = [0.75, 0.25]
+aggregator_weights = [0.4, 0.2, 0.1, 0.25, 0.05]
+distributor_weights = [0.78, 0.22]
 BIAS_CONSTANT = 400
 SIGN_CONSTANT = [-1, 1]
-control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
 # Replay Mode new variables
-REPLAY_PATH = './simulation_results/08-09-2024-1/'
+REPLAY_PATH = './simulation_results/14-09-2024-1/'
 prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
 aggregators_df = pd.read_csv(REPLAY_PATH + "aggregators.csv")
 control_system_df = pd.read_csv(REPLAY_PATH + "control_systems.csv")
 
+assert sum(aggregator_weights) == 1
+assert sum(distributor_weights) == 1
+
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.1, cs_frame=control_system_df)
 
-wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=500000, voltage=25000, controller=control_system)
-wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=800000, voltage=25000, controller=control_system)
-wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=400000, voltage=25000, controller=control_system)
-wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=1000000, voltage=25000, controller=control_system)
+wind_turbine = pya.WindTurbine(name="G1", nominal_capacity=200000, voltage=25000, controller=control_system)
+wind_turbine2 = pya.WindTurbine(name="G2", nominal_capacity=150000, voltage=25000, controller=control_system)
+wind_turbine3 = pya.WindTurbine(name="G3", nominal_capacity=220000, voltage=25000, controller=control_system)
+wind_turbine4 = pya.WindTurbine(name="G4", nominal_capacity=180000, voltage=25000, controller=control_system)
 
 transmitter = pya.Transmitter(name="T1", efficiency=1.0, distance=100, generators=[wind_turbine, wind_turbine2, wind_turbine4])
 transmitter2 = pya.Transmitter(name="T2", efficiency=1.0, distance=100, generators=[wind_turbine3])
@@ -54,7 +56,16 @@ a_to_u = []
 aggregators_list = []
 
 # New Weighted Round-Robin Style
-aggregators_list = [pya.NetAggregator(name=f"NA{i+1}") for i in range(NUMBER_OF_AGGREGATORS)]
+aggregators_list = []
+for i in range(NUMBER_OF_AGGREGATORS):
+    temp_comp = [0, 1, 3]
+    # aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.inflate.inflation_attack))
+    aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}"))
+
+print("Compromised NAs:")
+for agg in aggregators_list:
+    if agg.compromised:
+        print(agg.name)
 smart_meters = []
 
 for i, row in prosumers_df.iterrows():
@@ -64,7 +75,9 @@ for i, row in prosumers_df.iterrows():
         prosumer_type=row['prosumer_type'],
         storage_capacity=row['storage_capacity'],
         replay_frame=prosumers_df[prosumers_df["name"] == row["name"]],
-        distributor_name=row['distributor_name']
+        distributor_name=row['distributor_name'],
+        bias=0,
+        production_pattern=(0, 0)
         )
 
     _m = pya.SmartMeter(prosumer=_h, communication_network=communication_network)
@@ -93,8 +106,8 @@ for aggregator in aggregators_list:
 my_grid = pya.PyASPGCreator()
 my_grid.define_connections(
     generator_to_transmitter=[
-        (wind_turbine, transmitter2),
-        (wind_turbine2, transmitter2),
+        (wind_turbine, transmitter),
+        (wind_turbine2, transmitter),
         (wind_turbine3, transmitter2),
         # (wind_turbine3, transmitter),
         (wind_turbine4, transmitter),

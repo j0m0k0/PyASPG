@@ -14,6 +14,7 @@ class UtilityToControlHandler(BaseHandler):
             params (dict): Additional parameters for the connection.
             timestep (int): The current timestep in the simulation.
         """
+        print(f"UtilityToControlHandler--> {source.received_data=}")
         data = {
             'timestep': timestep,            
             'total_consumption': sum(d['total_consumption'] for d in source.received_data),
