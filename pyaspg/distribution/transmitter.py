@@ -11,7 +11,7 @@ class Transmitter:
         generators (list): The list of generators connected to this transmitter.
     """
 
-    def __init__(self, name, efficiency=0.95, distance=50, generators=[]):
+    def __init__(self, name, efficiency=1.0, distance=50, generators=[]):
         """
         Initialize a Transmitter instance.
 
@@ -30,8 +30,9 @@ class Transmitter:
         self.output_power = 0
         self.latest_timestep = -1
         self.generators = set(generators)
+        # print(f"Transmitter {self.name} created with {x.name for x in self.generators} generators")
 
-    def receive(self, input_power, timestep):
+    def receive(self, generator, input_power, timestep):
         """
         Receive the power from the generator.
 
@@ -42,11 +43,15 @@ class Transmitter:
         Returns:
             None
         """
-        if timestep != self.latest_timestep:
-            self.reset_input_power()
+        # Only allow to receive power from the registered generators on this transmitter
+        if generator in self.generators:
+            if timestep != self.latest_timestep:
+                self.reset_input_power()
 
-        self.input_power += input_power
-        self.latest_timestep = timestep
+            self.input_power += input_power
+            self.latest_timestep = timestep
+        else:
+            print(f"{self.name} wanted to receive power from {generator.name}, amount:{input_power}")
 
     def transmit(self):
         """

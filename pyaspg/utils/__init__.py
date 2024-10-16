@@ -1,2 +1,4 @@
 from .log_me import log_me
 from .consumption_pattern_parser import ConsumptionPatternParser
+from .random_error_generator import generate_random_error
+from .pareto_distribution import distribute_pareto

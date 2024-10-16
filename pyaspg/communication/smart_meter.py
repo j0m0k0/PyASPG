@@ -47,9 +47,9 @@ class SmartMeter:
             bool: True if the data was transmitted successfully, False otherwise.
         """
         data_packet = self.measure()
-        if data_packet['stored_energy'] != 0:
-            print(f"Storage capacity:", self.prosumer.storage_capacity)
-            print(f"send_data function in smart_meter {self.prosumer.name}, measured data: {data_packet=}")
+        # if data_packet['stored_energy'] != 0:
+            # print(f"Storage capacity:", self.prosumer.storage_capacity)
+            # print(f"send_data function in smart_meter {self.prosumer.name}, measured data: {data_packet=}")
         data_packet["prosumer_name"] = self.prosumer.name
         success = self.communication_network.transmit_data(data_packet)
         return success

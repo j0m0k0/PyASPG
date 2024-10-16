@@ -3,7 +3,7 @@ from pyaspg.utils import log_me
 
 @log_me
 class SubstationToDistributorHandler(BaseHandler):
-    def handle_connection(self, source, target, params, timestep, replay_mode):
+    def handle_connection(self, source, target, params, timestep, replay_mode, attacked):
         """
         Handle the connection between a substation and a distributor.
 
@@ -16,3 +16,5 @@ class SubstationToDistributorHandler(BaseHandler):
         # Get the output power from the substation and pass it to the distributor
         output_power = source.transform()
         target.receive(output_power)
+        if output_power == 0:
+            print(f"Substation {source.name} has no output power at timestep {timestep}")

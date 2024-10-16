@@ -11,3 +11,4 @@ test_simulation_results/
 experiments/
 temp/
 log.txt
+__pycache__/

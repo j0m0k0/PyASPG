@@ -60,6 +60,7 @@ class GridSimulator:
         self.data_log = None
         self.simlog_path = None
         self.replay_mode = False
+        self.attacked = False
         self.connection_handlers = {
             'generator_to_transmitter': GeneratorToTransmitterHandler(),
             'transmitter_to_substation': TransmitterToSubstationHandler(),
@@ -72,8 +73,9 @@ class GridSimulator:
             # Add other connection handlers here...
         }
 
-    def run_simulation(self, duration, timestep, control_clock, output_dir, replay_mode):
+    def run_simulation(self, duration, timestep, control_clock, output_dir, replay_mode, attacked=False):
         self.replay_mode = replay_mode  # Set the replay mode
+        self.attacked = attacked
 
         # Create a unique subdirectory within output_dir
         timestamp = datetime.now().strftime("%d-%m-%Y")
@@ -95,6 +97,7 @@ class GridSimulator:
         components = self.creator.components
         connections = self.creator.connections
 
+
         self._initialize_simlog(sim_dir, components)
         start_time = datetime.now()
 
@@ -110,8 +113,9 @@ class GridSimulator:
             for connection_type, connection_list in connections.items():
                 handler = self.connection_handlers.get(connection_type)
                 if handler:
+                    # print(f"Handling {connection_type} connections at timestep {t}")
                     for source, target, params in connection_list:
-                        handler.handle_connection(source, target, params, t // timestep, self.replay_mode)
+                        handler.handle_connection(source, target, params, t // timestep, self.replay_mode, self.attacked)
             self.data_log.log_data(t, components, connections)
 
         def run_simulation_step(env):
@@ -122,7 +126,7 @@ class GridSimulator:
                 control_system = self._get_control_system(components)
                 if control_system:
                     if replay_mode:
-                        control_system.replay_update_prediction(env.now, update_interval=control_clock, predictor='ideal')
+                        control_system.replay_update_prediction(env.now, update_interval=control_clock, predictor='ideal', attacked=attacked)
                     else:
                         control_system.update_prediction(env.now, update_interval=control_clock)
 

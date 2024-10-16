@@ -126,7 +126,6 @@ class Prosumer:
         if self.consumption_pattern_parser:
             consumption = next(self.consumption_pattern_parser)
             self.last_generated_consumption = consumption
-            print("consumption value to send to consume method", consumption)
             self.consume(consumption)
             return consumption
         else:
@@ -151,8 +150,8 @@ class Prosumer:
         Args:
             power (float): The power to be consumed in watts (W).
         """
-        if power < 0:
-            print("Power value", power)
+        # if power < 0:
+        #     print("Power value", power)
         self.total_consumption += power
         # First use stored energy
         used_from_storage = min(power, self.stored_energy)

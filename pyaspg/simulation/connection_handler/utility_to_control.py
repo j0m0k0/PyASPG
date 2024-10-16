@@ -4,7 +4,7 @@ from pyaspg.utils import log_me
 
 @log_me
 class UtilityToControlHandler(BaseHandler):
-    def handle_connection(self, source, target, params, timestep, replay_mode):
+    def handle_connection(self, source, target, params, timestep, replay_mode, attacked):
         """
         Handle the connection between a utility company and a control system.
 
@@ -14,7 +14,8 @@ class UtilityToControlHandler(BaseHandler):
             params (dict): Additional parameters for the connection.
             timestep (int): The current timestep in the simulation.
         """
-        print(f"UtilityToControlHandler--> {source.received_data=}")
+        # print(f"UtilityToControlHandler--> {source.received_data=}")
+        # if not replay_mode:
         data = {
             'timestep': timestep,            
             'total_consumption': sum(d['total_consumption'] for d in source.received_data),
@@ -25,3 +26,5 @@ class UtilityToControlHandler(BaseHandler):
         }
 
         target.receive_data(data)
+        # else:
+            # target.replay_receive_data(timestep)

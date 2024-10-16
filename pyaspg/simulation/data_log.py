@@ -60,15 +60,16 @@ class DataLog:
                 ]
             },
             'utility_companies': {
-                'header': ['timestep', 'name', 'generators', 'total_prosumers_consumption', 'total_prosumers_production',],
+                'header': ['timestep', 'name', 'generators', 'total_prosumers_consumption', 'total_prosumers_production', 'total_prosumers_stored_energy', 'total_prosumers_net_power'],
                 'data': lambda t, c, conn: [
-                    [t, c.name, [g.name for g in c.generators], c.received_data[-1]['total_consumption'], c.received_data[-1]['total_production']]
+                    # [t, c.name, [g.name for g in c.generators], c.received_data[-1]['total_consumption'], c.received_data[-1]['total_production']]
+                    [t, c.name, [g.name for g in c.generators], sum(d['total_consumption'] for d in c.received_data), sum(d['total_production'] for d in c.received_data), sum(d['total_stored_energy'] for d in c.received_data), sum(d['total_net_power'] for d in c.received_data)]
                 ]
             },
             'control_systems': {
-                'header': ['timestep', 'utility_name', 'total_net_power', 'total_consumption', 'total_production', 'total_stored_energy', 'predicted_demand'],
+                'header': ['timestep', 'utility_name', 'total_net_power', 'total_consumption', 'total_production', 'total_stored_energy', 'predicted_demand', 'predictor_error'],
                 'data': lambda t, c, conn: [
-                    [t, c.utility_data[-1]['utility_name'], c.utility_data[-1]['total_net_power'], c.utility_data[-1]['total_consumption'], c.utility_data[-1]['total_production'], c.utility_data[-1]['total_stored_energy'], c.predicted_demand[c.utility_data[-1]['utility_name']] if c.predicted_demand is not None else 0.0]
+                    [t, c.utility_data[-1]['utility_name'], c.utility_data[-1]['total_net_power'], c.utility_data[-1]['total_consumption'], c.utility_data[-1]['total_production'], c.utility_data[-1]['total_stored_energy'], c.predicted_demand[c.utility_data[-1]['utility_name']] if c.predicted_demand is not None else 0.0, c.generated_random_error if c.generated_random_error is not None else 0.0]
                 ]
             },
         }

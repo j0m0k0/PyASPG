@@ -3,7 +3,7 @@ from pyaspg.utils import log_me
 
 @log_me
 class SmartMeterToAggregatorHandler(BaseHandler):
-    def handle_connection(self, source, target, params, timestep, replay_mode):
+    def handle_connection(self, source, target, params, timestep, replay_mode, attacked):
         """
         Handle the connection between a smart meter and a net aggregator.
 
