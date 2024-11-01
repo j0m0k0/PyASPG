@@ -1,7 +1,7 @@
-import random
+import os
 import numpy as np
 import pandas as pd
-
+import pickle
 import pyaspg as pya
 
 
@@ -10,7 +10,7 @@ TIMESTEP = 1
 NUMBER_OF_PROSUMERS = 5000
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-ALPHA = 10.0
+ALPHA = 1.0
 
 # aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
 aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
@@ -18,11 +18,27 @@ aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER
 # Correct Name: Distribution Substations and Transmission Substations
 distributor_weights = [0.5, 0.5]
 
+ATTACK_METADATA = None
 BIAS_CONSTANT = 40
 SIGN_CONSTANT = [-1, 1]
 ATTACKED = True
+ATTACK_TYPE = "hybrid"
+
 # Replay Mode new variables
-REPLAY_PATH = f"./simulation_results/dataset2/pareto-10/pareto-secure-{'ideal' if ATTACKED else 'echo'}/"
+REPLAY_PATH = f"./simulation_results/dataset2/scenario-hyb-50.50/pareto-1/pareto-secure-{'ideal' if ATTACKED else 'echo'}/"
+DISTRIBUTION_ASSIGNMENT_PATH = REPLAY_PATH + "../distribution_assignments.pkl"
+ATTACK_METADATA = {}
+
+# Check if the file exists before loading
+if os.path.exists(DISTRIBUTION_ASSIGNMENT_PATH) and ATTACKED:
+    with open(DISTRIBUTION_ASSIGNMENT_PATH, 'rb') as f:
+        temp_f = pickle.load(f)
+        ATTACK_METADATA['distribution_data'] = {prosumer: distributor for distributor, prosumer in temp_f}
+
+    print("File loaded successfully.")
+else:
+    print("File does not exist, attack mode =", ATTACKED)
+
 
 prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
 aggregators_df = pd.read_csv(REPLAY_PATH + "aggregators.csv")
@@ -31,6 +47,9 @@ utility_companies_df = pd.read_csv(REPLAY_PATH + "utility_companies.csv")
 
 assert 1 - sum(aggregator_weights) <  0.000000001
 assert sum(distributor_weights) == 1
+if ATTACKED:
+    multipliers_data = pya.utils.find_multipliers(prosumers_df)
+    ATTACK_METADATA['multipliers_data'] = multipliers_data
 
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.1, uc_frame=utility_companies_df, cs_frame=control_system_df, error_rate=0.05)
 
@@ -69,7 +88,15 @@ aggregators_list = []
 for i in range(NUMBER_OF_AGGREGATORS):
     if ATTACKED:
         temp_comp = [0]
-        aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.inflate.inflation_attack, compromise_start_time=80, compromise_duration=20, control_system=control_system))
+        # Inflation Attack
+        if ATTACK_TYPE == "inflate":
+            aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.inflate.inflation_attack, compromise_start_time=80, compromise_duration=20, control_system=control_system))
+        # Deflation Attack
+        elif ATTACK_TYPE == "deflate":
+            aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.deflate.deflation_attack, compromise_start_time=80, compromise_duration=20, control_system=control_system))
+        # Hybrid Attack
+        else:  
+            aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.hybrid.hybrid_attack, attack_metadata=ATTACK_METADATA, compromise_start_time=80, compromise_duration=20, control_system=control_system))
     else:
         temp_comp = []
         aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}"))
@@ -103,6 +130,8 @@ for i, row in prosumers_df.iterrows():
     # TODO: This part should be fixed
     d_to_p.append((distributor if row['distributor_name'] == distributor.name else distributor2, _h))
     p_to_m.append((_h, _m))
+
+    
 
 
 pya.RR_distribution.load_smart_meter_assignments(aggregators_list, smart_meters, aggregators_df=aggregators_df[aggregators_df['timestep'] == 0])

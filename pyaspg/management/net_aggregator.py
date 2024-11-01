@@ -17,7 +17,7 @@ class NetAggregator:
         commands (dict): Commands to be sent to prosumers.
     """
 
-    def __init__(self, name, compromised=False, attack_method=None, compromise_start_time=None, compromise_duration=None, control_system=None):
+    def __init__(self, name, compromised=False, attack_method=None, attack_metadata=None, compromise_start_time=None, compromise_duration=None, control_system=None):
         """
         Initialize a NetAggregator instance.
 
@@ -32,15 +32,16 @@ class NetAggregator:
         self.smart_meters = []
         self.compromised = compromised
         self.attack_method = attack_method
+        self.attack_metadata = attack_metadata        
         self.compromise_start_time = compromise_start_time
         self.compromise_duration = compromise_duration
         self.end_time = None
         self.control_system = control_system
         if self.compromise_start_time is not None and self.compromise_duration is not None:
-            self.end_time = compromise_start_time + compromise_duration
+            self.end_time = compromise_start_time + compromise_duration        
 
     def report_bias_to_control_system(self, control_system, timestep):
-        if self.compromised:
+        if self.compromised and self.attack_method is not None:
             # This amount should be based on attack_type and the rates
             amount = None
             if self.attack_method is inflate.inflation_attack:
@@ -48,8 +49,13 @@ class NetAggregator:
             elif self.attack_method is deflate.deflation_attack:
                 amount = (self.data_collected[timestep][-1]["net_power"] / 0.9) * -0.1
             else:
-                # TODO this is the hybrid attack where some prosumers get inflated and the others get deflated
-                pass
+                INFLATION_DISTRIBURATION = self.attack_metadata['distribution_data'].get(self.data_collected[timestep][-1]["prosumer"]) == 'D1'  
+                # TODO the multipliers should be calculated per each distribution and passed as meta data probably.
+                              
+                if INFLATION_DISTRIBURATION:
+                    amount = (self.data_collected[timestep][-1]["net_power"] / self.attack_metadata['multipliers_data'][timestep]['Multiplier_A']) * (self.attack_metadata['multipliers_data'][timestep]['Multiplier_A'] - 1)
+                else:
+                    amount = (self.data_collected[timestep][-1]["net_power"] / self.attack_metadata['multipliers_data'][timestep]['Multiplier_B']) * (self.attack_metadata['multipliers_data'][timestep]['Multiplier_B'] - 1)
             control_system.receive_message("bias", timestep, dict(name=self.name, data=amount))
 
     def add_smart_meter(self, smart_meter):
@@ -76,22 +82,23 @@ class NetAggregator:
 
         data["timestep"] = timestep
         data["aggregator_name"] = self.name
-        # Check if the aggregator is compromised and an attack method is specified
+        # Check if the aggregator is compromised and an attack method exists
         if self.compromised and self.attack_method is not None:
-            if (self.compromise_start_time is None) and (self.compromise_duration is None):
-                # attack for the whole duration of simulation
-                data["net_power"] = self.attack_method(data["net_power"])
+            # whole simulation time attack
+            if (self.compromise_start_time is None) and (self.compromise_duration is None):            
+                data["net_power"] = self.attack_method(data["net_power"], criteria=timestep % 2 == 0)
+            # partial simulation time attack
             else:
                 if timestep >= self.compromise_start_time and timestep <= self.end_time:
                     # attack only for a specific duration
-                    data["net_power"] = self.attack_method(data["net_power"])
+                    data["net_power"] = self.attack_method(data["net_power"], criteria=timestep % 2 == 0)
         
         # Collect the data
         self.data_collected[timestep].append(data)
         
         conditions_to_report_bias_to_cs = self.compromised and (self.attack_method is not None)
         if conditions_to_report_bias_to_cs:
-            print("We should report")
+            # print("We should report")
             if self.end_time is not None:
                 # timed attack
                 if timestep >= self.compromise_start_time and timestep <= self.end_time:

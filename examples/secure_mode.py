@@ -1,8 +1,10 @@
 import math
 import random
+import pickle
 import numpy as np
 
 import pyaspg as pya
+import os
 
 
 DURATION = 240
@@ -10,14 +12,16 @@ TIMESTEP = 1
 NUMBER_OF_PROSUMERS = 5000
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-ALPHA = 10.0
+ALPHA = 1.0
 # aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
 aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
 ATTACKED = False
 
-print(aggregator_weights)
+print("Aggregator weights:", aggregator_weights)
 
 # Correct Name: Distribution Substations and Transmission Substations
+# TODO if we want to have different weights for each distributor, we should change here, not compromised_load
+# this is because the compromised mode only reads the weights we define here
 distributor_weights = [0.5, 0.5]
 BIAS_CONSTANT = 40
 SIGN_CONSTANT = [-1, 1]
@@ -42,7 +46,7 @@ distributor2 = pya.Distributor(name="D2", efficiency=1.0, distance=10)
 
 communication_network = pya.CommunicationNetwork(name="SGN", reliability=1.0)
 
-utility_company = pya.UtilityCompany(name="UC1", generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4]) # This is correct
+utility_company = pya.UtilityCompany(name="UC1", generators=[wind_turbine, wind_turbine2, wind_turbine3, wind_turbine4])
 control_system.register_utility_company(utility_company)
 
 # utility_company2 = pya.UtilityCompany(name="UC2")
@@ -62,9 +66,7 @@ aggregators_list = []
 aggregators_list = []
 for i in range(NUMBER_OF_AGGREGATORS):
     temp_comp = []
-    aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}"))
-    # temp_comp = [0]
-    # aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}", compromised=True if i in temp_comp else False, attack_method=pya.attacks.inflate.inflation_attack, compromise_start_time=80, compromise_duration=20))
+    aggregators_list.append(pya.NetAggregator(name=f"NA{i+1}"))    
     
 
 # print("Compromised NAs:")
@@ -111,6 +113,23 @@ for i in range(NUMBER_OF_PROSUMERS):
     p_to_m.append((_h, _m))
 
 assert len(d_to_p) == NUMBER_OF_PROSUMERS
+
+file_index = 1
+file_name = "distribution_assignments.pkl"
+
+# Check if file exists and find the next available file name
+while os.path.exists(file_name):
+    file_name = f"distribution_assignments_{file_index}.pkl"
+    file_index += 1
+
+# Save the dictionary to the new file
+simplified_d_to_p = [(distributor.name, prosumer.name) for distributor, prosumer in d_to_p]
+with open("simulation_results/" + file_name, 'wb') as f:
+    pickle.dump(simplified_d_to_p, f)
+
+print(f"Data saved to {file_name}")
+
+
 
 pya.RR_distribution.assign_smart_meters(aggregators_list, aggregator_weights, smart_meters)
 
