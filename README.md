@@ -1,4 +1,4 @@
-# PyASPG - Smart Power Grid Simulation Framework ![Static Badge](https://img.shields.io/badge/Version-0.4-orange)
+# PyASPG - Smart Power Grid Simulation Framework ![Static Badge](https://img.shields.io/badge/Version-0.5-orange)
 
 ## TODO
 - Tests should be written manually from the ground
