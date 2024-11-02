@@ -1,10 +1,10 @@
 import pandas as pd
 from scipy.optimize import minimize
 
-REPLAY_PATH = f"./simulation_results/dataset2/scenario-hyb-90.10/uniform/uniform-secure-echo/"
-DISTRIBUTION_ASSIGNMENT_PATH = REPLAY_PATH + "../distribution_assignments.pkl"
+# REPLAY_PATH = f"./simulation_results/dataset2/scenario-hyb-90.10/uniform/uniform-secure-echo/"
+# DISTRIBUTION_ASSIGNMENT_PATH = REPLAY_PATH + "../distribution_assignments.pkl"
 
-prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
+# prosumers_df = pd.read_csv(REPLAY_PATH + "prosumers.csv")
 
 def find_multipliers(prosumers_df):
     results = {}  # Dictionary to store results for each timestep

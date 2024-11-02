@@ -12,17 +12,19 @@ TIMESTEP = 1
 NUMBER_OF_PROSUMERS = 5000
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-ALPHA = 1.0
-# aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
-ATTACKED = False
+# ALPHA = 1.0
+aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+# aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
+ATTACKED = True
 
 print("Aggregator weights:", aggregator_weights)
+
 
 # Correct Name: Distribution Substations and Transmission Substations
 # TODO if we want to have different weights for each distributor, we should change here, not compromised_load
 # this is because the compromised mode only reads the weights we define here
-distributor_weights = [0.5, 0.5]
+distributor_weights = [0.8, 0.2]
+print("Distributor weights:", distributor_weights)
 BIAS_CONSTANT = 40
 SIGN_CONSTANT = [-1, 1]
 control_system = pya.ControlSystem(name="CS1", safety_margin=1.0)
@@ -79,6 +81,7 @@ smart_meters = []
 # Calculate the exact number of prosumers for each distributor
 num_prosumers = NUMBER_OF_PROSUMERS
 num_prosumers_per_distributor = [math.floor(weight * num_prosumers) for weight in distributor_weights]
+print("Number of prosumers per distributor:", num_prosumers_per_distributor)
 
 # Ensure the sum matches exactly by adjusting the last one
 num_prosumers_per_distributor[-1] = num_prosumers - sum(num_prosumers_per_distributor[:-1])
@@ -140,17 +143,22 @@ for aggregator in aggregators_list:
         for meter in aggregator.smart_meters:
             m_to_a.append((meter, aggregator))
 
-# Define connections between components with parameters
-my_grid = pya.PyASPGCreator()
-my_grid.define_connections(
-    generator_to_transmitter=[
+g2t = [
         (wind_turbine, transmitter),
         (wind_turbine2, transmitter),
         (wind_turbine3, transmitter2),
         (wind_turbine4, transmitter2),
-    ],
-    transmitter_to_substation=[(transmitter, substation), (transmitter2, substation2)],
-    substation_to_distributor=[(substation, distributor), (substation2, distributor2)],
+    ]
+t2s = [(transmitter, substation), (transmitter2, substation2)]
+s2d = [(substation, distributor), (substation2, distributor2)]
+
+control_system.set_generators_distribution(g2t,t2s, s2d, distributor_weights)
+# Define connections between components with parameters
+my_grid = pya.PyASPGCreator()
+my_grid.define_connections(
+    generator_to_transmitter=g2t,
+    transmitter_to_substation=t2s,
+    substation_to_distributor=s2d,
     distributor_to_prosumer=d_to_p,
     prosumer_to_smart_meter=p_to_m,
     smart_meter_to_aggregator=m_to_a,

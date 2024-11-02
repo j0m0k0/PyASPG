@@ -10,22 +10,24 @@ TIMESTEP = 1
 NUMBER_OF_PROSUMERS = 5000
 NUMBER_OF_AGGREGATORS = 5
 CONTROL_CLOCK = 1
-ALPHA = 1.0
+# ALPHA = 5.0
 
-# aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
+aggregator_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+# aggregator_weights = pya.utils.distribute_pareto(alpha=ALPHA, num_classes=NUMBER_OF_AGGREGATORS)
 
 # Correct Name: Distribution Substations and Transmission Substations
-distributor_weights = [0.5, 0.5]
+
 
 ATTACK_METADATA = None
 BIAS_CONSTANT = 40
 SIGN_CONSTANT = [-1, 1]
 ATTACKED = True
 ATTACK_TYPE = "hybrid"
+distributor_weights = [0.8, 0.2]
 
 # Replay Mode new variables
-REPLAY_PATH = f"./simulation_results/dataset2/scenario-hyb-50.50/pareto-1/pareto-secure-{'ideal' if ATTACKED else 'echo'}/"
+# pareto-{int(ALPHA)}
+REPLAY_PATH = f"./simulation_results/dataset2/scenario-hyb-80.20/uniform/uniform-secure-{'ideal' if ATTACKED else 'echo'}/"
 DISTRIBUTION_ASSIGNMENT_PATH = REPLAY_PATH + "../distribution_assignments.pkl"
 ATTACK_METADATA = {}
 
@@ -46,7 +48,7 @@ control_system_df = pd.read_csv(REPLAY_PATH + "control_systems.csv")
 utility_companies_df = pd.read_csv(REPLAY_PATH + "utility_companies.csv")
 
 assert 1 - sum(aggregator_weights) <  0.000000001
-assert sum(distributor_weights) == 1
+
 if ATTACKED:
     multipliers_data = pya.utils.find_multipliers(prosumers_df)
     ATTACK_METADATA['multipliers_data'] = multipliers_data
@@ -144,17 +146,23 @@ for aggregator in aggregators_list:
         for meter in aggregator.smart_meters:
             m_to_a.append((meter, aggregator))
 
-# Define connections between components with parameters
-my_grid = pya.PyASPGCreator()
-my_grid.define_connections(
-    generator_to_transmitter=[
+g2t = [
         (wind_turbine, transmitter),
         (wind_turbine2, transmitter),
         (wind_turbine3, transmitter2),
         (wind_turbine4, transmitter2),
-    ],
-    transmitter_to_substation=[(transmitter, substation), (transmitter2, substation2)],
-    substation_to_distributor=[(substation, distributor), (substation2, distributor2)],
+    ]
+t2s = [(transmitter, substation), (transmitter2, substation2)]
+s2d = [(substation, distributor), (substation2, distributor2)]
+
+control_system.set_generators_distribution(g2t,t2s, s2d, distributor_weights)
+
+# Define connections between components with parameters
+my_grid = pya.PyASPGCreator()
+my_grid.define_connections(
+    generator_to_transmitter=g2t,
+    transmitter_to_substation=t2s,
+    substation_to_distributor=s2d,
     distributor_to_prosumer=d_to_p,
     prosumer_to_smart_meter=p_to_m,
     smart_meter_to_aggregator=m_to_a,
