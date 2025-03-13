@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyaspg"
+version = "0.6.0"
+description = "Smart-grid simulation and topology-aware FDIA research tools"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.22",
+    "pandas>=1.4",
+    "scipy>=1.8",
+    "simpy>=4.0",
+    "tqdm>=4.60",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+[project.scripts]
+pyaspg-research = "pyaspg.research.cli:main"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]

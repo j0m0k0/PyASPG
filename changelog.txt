@@ -1,3 +1,9 @@
+Version 0.6.0
+- Added a reproducible, topology-aware time-slotted FDIA research simulator with paired secure baselines
+- Added hybrid, replay, noise, ramp and reporting-outage scenarios, storage and redistribution metrics
+- Added a portable HTML dashboard with SVG charts, topology visualization, CSV/JSON exports and architecture diagrams
+- Added package metadata and a research CLI entry point
+
 Version 1.0 [TODO] [Public Release]
 - config file support for making smart power grid simulations 
 - GUI for PyASPG

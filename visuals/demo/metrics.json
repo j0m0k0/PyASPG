@@ -1,0 +1,76 @@
+{
+  "config": {
+    "steps": 240,
+    "timestep_hours": 0.016666666666666666,
+    "prosumers": 240,
+    "aggregators": 5,
+    "substations": 2,
+    "compromised_aggregator": 0,
+    "attack": "hybrid",
+    "attack_start": 80,
+    "attack_end": 100,
+    "attack_strength": 0.1,
+    "aggregator_topology": "pareto",
+    "pareto_alpha": 3.0,
+    "substation_topology": "skewed",
+    "skew": 0.8,
+    "safety_margin": 1.1,
+    "forecast_error": 0.05,
+    "line_loss_rate": 0.035,
+    "redistribution": true,
+    "redistribution_distance_km": 2.0,
+    "line_reliability": 0.9,
+    "redistribution_exponent": 2.0,
+    "battery_share": 0.0,
+    "battery_hours": 3.0,
+    "nsr_threshold": 0.05,
+    "seed": 42
+  },
+  "metrics": {
+    "deviation_from_nominal": 0.0005178704476732621,
+    "power_outage_count": 0.0,
+    "outage_events": 0.0,
+    "unserved_energy": 0.0,
+    "redistribution_cost": 120.80677560785097,
+    "redistributed_power": 25.917075926404472,
+    "potential_outage_risk": 0.35,
+    "average_report_error": 0.0,
+    "energy_waste": 4.002892443523335
+  },
+  "topology": {
+    "aggregator_prosumers": [
+      197,
+      27,
+      8,
+      3,
+      5
+    ],
+    "substation_prosumers": [
+      186,
+      54
+    ],
+    "compromised_aggregator_share": 0.8208333333333333,
+    "joint_counts": [
+      [
+        154,
+        43
+      ],
+      [
+        20,
+        7
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        4,
+        1
+      ]
+    ]
+  }
+}
