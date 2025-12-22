@@ -1,9 +1,5 @@
 # PyASPG - Smart Power Grid Simulation Framework ![Static Badge](https://img.shields.io/badge/Version-0.5-orange)
 
-## TODO
-- Tests should be written manually from the ground
-- Before running each simulation, a small and fast set of tests should be done to make sure simulation is logically correcty
-
 ## Overview
 
 PyASPG is a simulation framework for modeling and analyzing smart power grids. It allows users to simulate the behavior of various components in a smart grid, including generators, transmitters, distributors, prosumers, and utility companies. The framework provides a flexible way to define connections between these components and log their interactions over time.
